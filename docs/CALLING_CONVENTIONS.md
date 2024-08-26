@@ -153,12 +153,6 @@ which is done with the following ...
     - set the MP (current message pointer)
         - this keeps track of where it is
 
-Once a message is processed, it should be discarded to clear
-up the stack.
-
-- MSG_DISCARD
-    -
-
 From here the message can be inspect with:
 
 - MSG_SENDER
@@ -166,6 +160,13 @@ From here the message can be inspect with:
 - MSG_GET idx
     - reads (mp - 2) - idx
 
+
+Once a message is processed, it should be discarded to clear
+up the stack.
+
+- MSG_DISCARD
+    - this is like a commit point, the message must be at the
+      top of the stack (MP == SP), and then we remove it.
 
 <!---------------------------------------------------------------------------->
 ## Syncronous (Function) calls

@@ -68,8 +68,23 @@ You cannot access a variable from another namespace, so no need for a
 ## Executable Format
 <!---------------------------------------------------------------------------->
 
-While it would be possible to write
+This will basically be an array in Perl
 
+```
+<p:address of spawn>
+<p:address of despawn>
+<i:num_signals>
+%SIGNAL1
+%SIGNAL2
+<i:num_tags>
+^tag1
+^tag2
+^tag3
+<i:code_length>
+@code ...
+```
+
+Since we have the code length here, we can also include other stuff later, but this is good for now.
 
 
 
