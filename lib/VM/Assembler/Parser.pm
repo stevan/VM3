@@ -23,7 +23,7 @@ class VM::Assembler::Parser {
 
         my @tokens = $tokenizer->tokenize( $source );
 
-        my @stack;
+        my @body;
 
         while (@tokens && !($tokens[0] isa VM::Assembler::Token::EOF)) {
             my $t = $tokens[0];
@@ -31,15 +31,15 @@ class VM::Assembler::Parser {
             if ($t isa VM::Assembler::Token::EOL) {
                 shift @tokens;
             } elsif ($t isa VM::Assembler::Token::Structure) {
-                push @stack => $self->parse_structure( \@tokens );
+                push @body => $self->parse_structure( \@tokens );
             } elsif ($t isa VM::Assembler::Token::Label) {
-                push @stack => $self->parse_label_block( \@tokens );
+                push @body => $self->parse_label_block( \@tokens );
             } else {
                 confess "Top Level must be either Structure of Label, not $t";
             }
         }
 
-        return @stack;
+        return @body;
     }
 
 
@@ -91,7 +91,7 @@ class VM::Assembler::Parser {
     }
 
     method parse_label_block ($tokens) {
-        LOG("Parsing LabelBlock ...") if DEBUG;
+        LOG("Parsing LabeledBlock ...") if DEBUG;
 
         my $label = shift @$tokens;
 
@@ -110,7 +110,7 @@ class VM::Assembler::Parser {
             }
         }
 
-        return VM::Assember::AST::LabelBlock->new(
+        return VM::Assember::AST::LabeledBlock->new(
             label => $label,
             body  => \@body,
         );

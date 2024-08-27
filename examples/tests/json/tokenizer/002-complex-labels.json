@@ -1,0 +1,262 @@
+[
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Label",
+      "value" : ".is_even"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "LOAD_ARG"
+   },
+   {
+      "@type" : "Number",
+      "value" : "0"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "PUSH"
+   },
+   {
+      "@type" : "Literal",
+      "value" : "i(2)"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "MOD_INT"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "JUMP_IF_ZERO"
+   },
+   {
+      "@type" : "Address",
+      "value" : "&is_even.true"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "PUSH"
+   },
+   {
+      "@type" : "Literal",
+      "value" : "s(\"false\")"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Label",
+      "value" : ".is_even.true"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "PUSH"
+   },
+   {
+      "@type" : "Literal",
+      "value" : "s(\"true\")"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "JUMP"
+   },
+   {
+      "@type" : "Address",
+      "value" : "&is_even.return"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Label",
+      "value" : ".is_even.return"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "RETURN"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Label",
+      "value" : ".adder"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "LOAD_ARG"
+   },
+   {
+      "@type" : "Number",
+      "value" : "0"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "LOAD_ARG"
+   },
+   {
+      "@type" : "Number",
+      "value" : "1"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "ADD_INT"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "RETURN"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Label",
+      "value" : ".main"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "PUSH"
+   },
+   {
+      "@type" : "Literal",
+      "value" : "i(2)"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "PUSH"
+   },
+   {
+      "@type" : "Literal",
+      "value" : "i(2)"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "CALL"
+   },
+   {
+      "@type" : "Address",
+      "value" : "&adder"
+   },
+   {
+      "@type" : "Comma",
+      "value" : ","
+   },
+   {
+      "@type" : "Number",
+      "value" : "2"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "CALL"
+   },
+   {
+      "@type" : "Address",
+      "value" : "&is_even"
+   },
+   {
+      "@type" : "Comma",
+      "value" : ","
+   },
+   {
+      "@type" : "Number",
+      "value" : "1"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "EXIT"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "EOF",
+      "value" : "EOF"
+   }
+]

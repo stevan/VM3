@@ -1,0 +1,84 @@
+[
+   {
+      "@node" : "LabeledBlock",
+      "_label" : ".adder",
+      "body" : [
+         {
+            "@node" : "UnOp",
+            "_op" : "LOAD_ARG",
+            "oper" : {
+               "@node" : "Number",
+               "value" : "0"
+            }
+         },
+         {
+            "@node" : "UnOp",
+            "_op" : "LOAD_ARG",
+            "oper" : {
+               "@node" : "Number",
+               "value" : "1"
+            }
+         },
+         {
+            "@node" : "Op",
+            "_op" : "ADD_INT"
+         },
+         {
+            "@node" : "Op",
+            "_op" : "RETURN"
+         }
+      ]
+   },
+   {
+      "@node" : "LabeledBlock",
+      "_label" : ".main",
+      "body" : [
+         {
+            "@node" : "UnOp",
+            "_op" : "PUSH",
+            "oper" : {
+               "@node" : "Literal",
+               "_type" : "i",
+               "value" : "2"
+            }
+         },
+         {
+            "@node" : "UnOp",
+            "_op" : "PUSH",
+            "oper" : {
+               "@node" : "Literal",
+               "_type" : "i",
+               "value" : "2"
+            }
+         },
+         {
+            "@node" : "BinOp",
+            "_op" : "CALL",
+            "oper1" : {
+               "@node" : "Address",
+               "value" : "&adder"
+            },
+            "oper2" : {
+               "@node" : "Number",
+               "value" : "2"
+            }
+         },
+         {
+            "@node" : "BinOp",
+            "_op" : "CALL",
+            "oper1" : {
+               "@node" : "Address",
+               "value" : "&is_even"
+            },
+            "oper2" : {
+               "@node" : "Number",
+               "value" : "1"
+            }
+         },
+         {
+            "@node" : "Op",
+            "_op" : "EXIT"
+         }
+      ]
+   }
+]

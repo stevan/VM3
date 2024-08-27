@@ -1,0 +1,33 @@
+[
+   {
+      "@node" : "LabeledBlock",
+      "_label" : ".main",
+      "body" : [
+         {
+            "@node" : "UnOp",
+            "_op" : "PUSH",
+            "oper" : {
+               "@node" : "Literal",
+               "_type" : "s",
+               "value" : "\"Hello World \""
+            }
+         },
+         {
+            "@node" : "BinOp",
+            "_op" : "SYS_CALL",
+            "oper1" : {
+               "@node" : "SysCall",
+               "value" : "::say"
+            },
+            "oper2" : {
+               "@node" : "Number",
+               "value" : "2"
+            }
+         },
+         {
+            "@node" : "Op",
+            "_op" : "EXIT"
+         }
+      ]
+   }
+]

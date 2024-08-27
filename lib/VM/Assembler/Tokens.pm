@@ -35,6 +35,10 @@ package VM::Assembler::Tokens {
         method to_string {
             sprintf 'TOKEN(%s, %s)' => $self->type, $self->value;
         }
+
+        method to_JSON {
+            +{ '@type' => $self->type, value => $self->value }
+        }
     }
 
     class VM::Assembler::Token::Label     :isa(VM::Assembler::Token) {} # .label

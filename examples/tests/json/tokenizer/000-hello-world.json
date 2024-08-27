@@ -1,0 +1,67 @@
+[
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Label",
+      "value" : ".main"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "@type" : "Opcode",
+      "value" : "PUSH"
+   },
+   {
+      "@type" : "Literal",
+      "value" : "s(\"Hello World \")"
+   },
+   {
+      "@type" : "Comment",
+      "value" : "# [ \"Hello World\" ]"
+   },
+   {
+      "value" : "EOL",
+      "@type" : "EOL"
+   },
+   {
+      "value" : "SYS_CALL",
+      "@type" : "Opcode"
+   },
+   {
+      "value" : "::say",
+      "@type" : "SysCall"
+   },
+   {
+      "@type" : "Comma",
+      "value" : ","
+   },
+   {
+      "value" : "2",
+      "@type" : "Number"
+   },
+   {
+      "value" : "# []",
+      "@type" : "Comment"
+   },
+   {
+      "value" : "EOL",
+      "@type" : "EOL"
+   },
+   {
+      "value" : "EXIT",
+      "@type" : "Opcode"
+   },
+   {
+      "@type" : "EOL",
+      "value" : "EOL"
+   },
+   {
+      "value" : "EOF",
+      "@type" : "EOF"
+   }
+]
+
