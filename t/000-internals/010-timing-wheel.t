@@ -4,7 +4,6 @@ use v5.40;
 use experimental qw[ class builtin ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
-#use importer 'Time::HiRes'  => qw[ time usleep ];
 use importer 'List::Util'   => qw[ min max sum ];
 
 use constant SECOND       => 1000;
