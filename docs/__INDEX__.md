@@ -13,6 +13,10 @@
         - spawn and despawn
         - sys calls
 
+- DATATYPES.md
+    - the core data types and the operations that can be
+      performed on them.
+
 - INSTRUCTIONS.md
     - list all the instructions for the VM
 

@@ -2,134 +2,184 @@
 # Instruction Set
 <!---------------------------------------------------------------------------->
 
+- OPCODE :operands/stack-args -> changes to stack (other than POPing args)
+
+<!---------------------------------------------------------------------------->
 ## Stack Ops
+<!---------------------------------------------------------------------------->
 
-- PUSH
-- POP
-- PEEK
-- SWAP
-- DUP
+- PUSH :1/0 ->  1
+- POP  :0/0 -> -1
+- PEEK :0/0 ->  1
+- SWAP :0/0 ->  0
+- DUP  :0/0 ->  1
 
-## Const Ops
-
-- CONST_NULL
-- CONST_TRUE
-- CONST_FALSE
-- CONST_INT
-- CONST_FLOAT
-- CONST_CHAR
-- CONST_STRING
-
+<!---------------------------------------------------------------------------->
 ## Maths
+<!---------------------------------------------------------------------------->
 
-- {ADD, SUB, MUL, DIV, MOD} for INT and FLOAT
-- {INC, DEC} for INT, FLOAT and CHAR
-- {INC_BY, DEC_BY} for INT, FLOAT and CHAR
+- INC_CHAR    :0/1 -> 1
+- INC_INT     :0/1 -> 1
+- INC_FLOAT   :0/1 -> 1
+- INC_ADDRESS :0/1 -> 1
 
+- DEC_CHAR    :0/1 -> 1
+- DEC_INT     :0/1 -> 1
+- DEC_FLOAT   :0/1 -> 1
+- DEC_ADDRESS :0/1 -> 1
+
+- ADD_INT     :0/2 -> 1
+- SUB_INT     :0/2 -> 1
+- MUL_INT     :0/2 -> 1
+- DIV_INT     :0/2 -> 1
+- MOD_INT     :0/2 -> 1
+
+- ADD_FLOAT   :0/2 -> 1
+- SUB_FLOAT   :0/2 -> 1
+- MUL_FLOAT   :0/2 -> 1
+- DIV_FLOAT   :0/2 -> 1
+- MOD_FLOAT   :0/2 -> 1
+
+<!---------------------------------------------------------------------------->
 ## Equality
+<!---------------------------------------------------------------------------->
 
-- EQ_{NULL,TRUE,FALSE,INT,FLOAT,CHAR}
+- EQ_NULL     :0/1 -> 1
+- EQ_TRUE     :0/1 -> 1
+- EQ_FALSE    :0/1 -> 1
+- EQ_CHAR     :0/2 -> 1
+- EQ_INT      :0/2 -> 1
+- EQ_FLOAT    :0/2 -> 1
+- EQ_TAG      :0/2 -> 1
+- EQ_ADDRESS  :0/2 -> 1
+- EQ_STRING   :0/2 -> 1
+- EQ_PID      :0/2 -> 1
 
+<!---------------------------------------------------------------------------->
 ## Comparisons
+<!---------------------------------------------------------------------------->
 
-- LT_{INT,FLOAT,CHAR}
-- LTE_{INT,FLOAT,CHAR}
-- GT_{INT,FLOAT,CHAR}
-- GTE_{INT,FLOAT,CHAR}
+- LT_CHAR     :0/2 -> 1
+- LTE_CHAR    :0/2 -> 1
+- GT_CHAR     :0/2 -> 1
+- GTE_CHAR    :0/2 -> 1
 
+- LT_INT      :0/2 -> 1
+- LTE_INT     :0/2 -> 1
+- GT_INT      :0/2 -> 1
+- GTE_INT     :0/2 -> 1
+
+- LT_FLOAT    :0/2 -> 1
+- LTE_FLOAT   :0/2 -> 1
+- GT_FLOAT    :0/2 -> 1
+- GTE_FLOAT   :0/2 -> 1
+
+- LT_ADDRESS  :0/2 -> 1
+- LTE_ADDRESS :0/2 -> 1
+- GT_ADDRESS  :0/2 -> 1
+- GTE_ADDRESS :0/2 -> 1
+
+<!---------------------------------------------------------------------------->
 ## Logical
+<!---------------------------------------------------------------------------->
 
-- AND
-- OR
-- NOT
+- AND :0/2 -> 1
+- OR  :0/2 -> 1
+- NOT :0/2 -> 1
 
+<!---------------------------------------------------------------------------->
 ## Branching
+<!---------------------------------------------------------------------------->
 
-- JUMP
-- JUMP_IF_TRUE
-- JUMP_IF_FALSE
+- JUMP          :1/0 -> 0
+- JUMP_IF_TRUE  :1/1 -> 0
+- JUMP_IF_FALSE :1/1 -> 0
+- JUMP_IF_NULL  :1/1 -> 0
+- JUMP_IF_ZERO  :1/1 -> 0
 
-- ADVANCE_BY
+- ADVANCE_BY    :0/1 -> 0
 
+<!---------------------------------------------------------------------------->
 ## Local Stack Access
+<!---------------------------------------------------------------------------->
 
-- ALLOC_LOCAL
-- FREE_LOCAL
-- LOAD_LOCAL
-- STORE_LOCAL
+- ALLOC_LOCAL :1/0 -> 0
+- FREE_LOCAL  :1/0 -> 0
+- LOAD_LOCAL  :1/0 -> 1
+- STORE_LOCAL :1/1 -> 0
 
-## Memory Ops
-
-- ALLOC_MEM
-- FREE_MEM
-
-- LOAD_MEM
-- STORE_MEM
-- CLEAR_MEM
-- COPY_MEM
-
-## Module loader ops
-
-- PUBLIC
-- USE_SIGNAL
-- EXPORT_TAG
-
+<!---------------------------------------------------------------------------->
 ## Process Ops
+<!---------------------------------------------------------------------------->
 
-- ALLOC_PROCESS
-- FREE_PROCESS
+The process ops are a little different, since all the operations happen
+within the context of a process, these can make certain assumptions.
 
-- SET_SIG_HANDLER
+This can be thought of as `peek` ops, in that they do not remove the top
+of the stack with `pop`, but instead will `peek` and so preserve the
+stack for other operations to chain off of.
 
-- ALLOC_CONSTANT
-- FREE_CONSTANT
+- ALLOC_PROCESS   :0/1 -> 1
+- FREE_PROCESS    :0/0 -> 0
 
-- SELF
+- SET_SIG_HANDLER :1/0 -> 0
+- SET_ENTRY       :1/0 -> 0
 
-- NUM_SIGNALS
-- NUM_MESSAGES
+- SELF            :0/0 -> 1
 
-## Function Call Ops
+- NUM_SIGNALS     :0/0 -> 1
+- NUM_MESSAGES    :0/0 -> 1
 
-- LOAD_ARG
-- CALL
-- TAIL_CALL
-- RETURN
+<!---------------------------------------------------------------------------->
+## Process Control Ops
+<!---------------------------------------------------------------------------->
 
+- YIELD       :1/0 -> 0
+- WAIT        :0/1 -> 0
+- WAIT_ALL    :0/0 -> 0
+- STOP        :0/0 -> 0
+- RESTART     :0/0 -> 0
+
+<!---------------------------------------------------------------------------->
+## Sync Call Ops
+<!---------------------------------------------------------------------------->
+
+- LOAD_ARG   :1/0 -> 1
+- CALL       :2/n -> 3 + n
+- RETURN     :0/0 -> 1
+
+<!---------------------------------------------------------------------------->
 ## Async Call Ops
+<!---------------------------------------------------------------------------->
 
-- SPAWN
-- DESPAWN
+- SPAWN       :2/n -> 1
+- DESPAWN     :0/1 -> 0
 
-- NEW_MSG
-- SEND
+- SEND        :2/n -> 2 + n
+- RECV        :0/0 -> 1
 
-- CMP_TAG
+- MSG_ACCEPT  :0/0 -> 2 + n
+- MSG_REJECT  :0/0 -> 0
+- MSG_DISCARD :0/0 -> 0
 
-- RECV
-- PEEK_MSG
+- MSG_SENDER  :0/1 -> 1
+- MSG_GET     :1/1 -> 1
 
-- MSG_ACCEPT
-- MSG_REJECT
-
-- MSG_SENDER
-- MSG_GET
-
-- YIELD
-- WAIT
-- STOP
-
+<!---------------------------------------------------------------------------->
 ## Signal Ops
+<!---------------------------------------------------------------------------->
+- SIG_RECV    :0/0 -> 1
+- SIG_RESUME  :0/0 -> 0
+- SIG_IGNORE  :0/0 -> 0
 
-- SIG_RECV
-- SIG_RESUME
-- SIG_IGNORE
+- NOTIFY      :1/1 -> 0
 
-- NOTIFY
-
+<!---------------------------------------------------------------------------->
 ## Other stuff
+<!---------------------------------------------------------------------------->
 
-- EXIT
+- SYSCALL     :2/n -> 1
+- EXIT        :0/0 -> 0
 
 <!---------------------------------------------------------------------------->
 

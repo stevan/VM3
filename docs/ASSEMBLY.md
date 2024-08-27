@@ -115,10 +115,10 @@ desugars into the code immediately below it, and is compiled as a module.
 
 .main
     PUSH i(10)                     # [ 10 ]
-    SPAWN_MODULE /ping-pong, 1     # [ \&ping-pong[1] ]
+    SPAWN /ping-pong, 1            # [ \&ping-pong[1] ]
 
     PUSH i(10)                     # [ \&ping-pong[1], 10 ]
-    SPAWN_MODULE /ping-pong, 1     # [ \&ping-pong[1], \&ping-pong[2] ]
+    SPAWN /ping-pong, 1            # [ \&ping-pong[1], \&ping-pong[2] ]
 
     LOAD_LOCAL 0                   # [ \&ping-pong[1], \&ping-pong[2] ]
     SEND ^/ping-pong:new_game, 1   # []

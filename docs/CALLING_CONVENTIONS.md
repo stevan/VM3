@@ -47,7 +47,7 @@ and it's heap.
                     - waiting for %TERMINATED signals from a process on the top of the stack
                     - this is a blocking state, nothing is processed until the
                       %TERMINATED signal is recieved
-                - WAIT_CHILDREN
+                - WAIT_ALL
                     - same as WAIT, but for all the process children
             - or suspend a process so that it can do internal stuff
                 - STOP
