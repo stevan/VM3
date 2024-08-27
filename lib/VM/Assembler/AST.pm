@@ -11,6 +11,10 @@ package VM::Assembler::AST {
         method to_string;
     }
 
+    ## --------------------------------------------------------------
+    ## Values
+    ## --------------------------------------------------------------
+
     class VM::Assember::AST::Number :isa(VM::Assembler::AST::Node) {
         field $number :param :reader;
 
@@ -67,40 +71,44 @@ package VM::Assembler::AST {
         }
     }
 
-    class VM::Assember::AST::StructureBlock :isa(VM::Assembler::AST::Node) {
-        field $structure :param :reader;
-        field $name      :param :reader = undef;
-        field $body      :param :reader;
+    ## --------------------------------------------------------------
+    ## Structures
+    ## --------------------------------------------------------------
+
+    class VM::Assember::AST::Function :isa(VM::Assembler::AST::Node) {
+        field $body :param :reader;
+
+        field $name;
+
+        ADJUST {
+            $name = $body->[0]->label;
+        }
 
         method to_string {
-            sprintf "Structure {\n\ttype = %s\n\tname = %s\n\tbody = (\n\t\t%s\n\t)\n}",
-                    $structure->value,
-                    ($name ? $name->value : '~'),
-                    (join "\n\t\t" => map $_->to_string, @$body)
+            sprintf "Function { name = %s body = ( %s ) }",
+                    $name->value,
+                    (join "; " => map $_->to_string, @$body)
         }
     }
+
+    ## --------------------------------------------------------------
+    ## Labeled Blocks
+    ## --------------------------------------------------------------
 
     class VM::Assember::AST::LabelBlock :isa(VM::Assembler::AST::Node) {
         field $label :param :reader;
         field $body  :param :reader;
 
         method to_string {
-            sprintf "LabelBlock {\n\tlabel = %s\n\tbody = (\n\t\t%s\n\t)\n}",
+            sprintf "LabelBlock { label = %s body = ( %s ) }",
                     $label->value,
-                    (join "\n\t\t" => map $_->to_string, @$body)
+                    (join "; " => map $_->to_string, @$body)
         }
     }
 
-    class VM::Assember::AST::TagBlock :isa(VM::Assembler::AST::Node) {
-        field $tag :param :reader;
-        field $body  :param :reader;
-
-        method to_string {
-            sprintf "TagBlock {\n\ttag = %s\n\tbody = (\n\t\t%s\n\t)\n}",
-                    $tag->value,
-                    (join "\n\t\t" => map $_->to_string, @$body)
-        }
-    }
+    ## --------------------------------------------------------------
+    ## Opcodes
+    ## --------------------------------------------------------------
 
     class VM::Assember::AST::Op :isa(VM::Assembler::AST::Node) {
         field $op :param :reader;
@@ -128,6 +136,10 @@ package VM::Assembler::AST {
             sprintf "BinOp{ op = %s, oper[0] = %s, oper[1] = %s }", $op->value, $oper1->to_string, $oper2->to_string;
         }
     }
+
+    ## --------------------------------------------------------------
+    ## Literals
+    ## --------------------------------------------------------------
 
     class VM::Assember::AST::Literal :isa(VM::Assembler::AST::Node) {
         field $literal :param :reader;

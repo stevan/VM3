@@ -34,6 +34,8 @@ class VM::Assembler::Parser {
                 push @stack => $self->parse_structure( \@tokens );
             } elsif ($t isa VM::Assembler::Token::Label) {
                 push @stack => $self->parse_label_block( \@tokens );
+            } else {
+                confess "Top Level must be either Structure of Label, not $t";
             }
         }
 
@@ -43,54 +45,64 @@ class VM::Assembler::Parser {
 
     method parse_structure ($tokens) {
         LOG("Parsing Structure ...") if DEBUG;
-        my $start = shift @$tokens;
-        my $name;
-        my @body;
+        my $structure = shift @$tokens;
 
-        if ($start->value eq ':actor') {
-            $name = shift @$tokens;
-        }
+        if ($structure->value eq ':header') {
 
-        while (@$tokens) {
-            my $t = $tokens->[0];
+            confess "Implement Header Directive";
 
-            if ($t isa VM::Assembler::Token::Structure && $t->value eq ':end') {
-                shift @$tokens;
-                last;
-            } else {
-                if ($t isa VM::Assembler::Token::Comment ||
-                    $t isa VM::Assembler::Token::EOL     ){
+        } elsif ($structure->value eq ':behavior') {
+
+            confess "Implement Behavior Directive";
+
+        } elsif ($structure->value eq ':actor') {
+
+            confess "Implement Actor Directive";
+
+        } elsif ($structure->value eq ':module') {
+
+            confess "Implement Directive";
+
+        } elsif ($structure->value eq ':function') {
+            my @body;
+
+            while (@$tokens) {
+                my $t = $tokens->[0];
+
+                if ($t isa VM::Assembler::Token::Structure && $t->value eq ':end') {
                     shift @$tokens;
-                    next;
-                } elsif ($t isa VM::Assembler::Token::Structure) {
-                    push @body => $self->parse_structure( $tokens );
-                } elsif ($t isa VM::Assembler::Token::Label) {
-                    push @body => $self->parse_label_block( $tokens );
-                } elsif ($t isa VM::Assembler::Token::Tag) {
-                    push @body => $self->parse_tag_block( $tokens );
+                    last;
                 } else {
-                    confess "WTF: $t";
+                    if ($t isa VM::Assembler::Token::Comment ||
+                        $t isa VM::Assembler::Token::EOL     ){
+                        shift @$tokens;
+                        next;
+                    } elsif ($t isa VM::Assembler::Token::Label) {
+                        push @body => $self->parse_label_block( $tokens );
+                    } else {
+                        confess "WTF: $t";
+                    }
                 }
             }
+
+            return VM::Assember::AST::Function->new( body => \@body );
         }
 
-        return VM::Assember::AST::StructureBlock->new(
-            structure => $start,
-            name      => $name,
-            body      => \@body,
-        );
     }
 
-    method parse_tag_block ($tokens) {
-        LOG("Parsing TagBlock ...") if DEBUG;
+    method parse_label_block ($tokens) {
+        LOG("Parsing LabelBlock ...") if DEBUG;
 
-        my $tag = shift @$tokens;
+        my $label = shift @$tokens;
 
         my @body;
         while (@$tokens) {
             if ($tokens->[0] isa VM::Assembler::Token::Comment ||
                 $tokens->[0] isa VM::Assembler::Token::EOL     ){
                 shift @$tokens;
+            } elsif ($tokens->[0] isa VM::Assembler::Token::Label ||
+                     $tokens->[0] isa VM::Assembler::Token::EOF   ){
+                last;
             } elsif ($tokens->[0] isa VM::Assembler::Token::Opcode) {
                 push @body => $self->parse_opcode( $tokens );
             } else {
@@ -98,9 +110,9 @@ class VM::Assembler::Parser {
             }
         }
 
-        return VM::Assember::AST::TagBlock->new(
-            tag  => $tag,
-            body => \@body,
+        return VM::Assember::AST::LabelBlock->new(
+            label => $label,
+            body  => \@body,
         );
     }
 
@@ -157,28 +169,5 @@ class VM::Assembler::Parser {
         }
 
         return $node;
-    }
-
-    method parse_label_block ($tokens) {
-        LOG("Parsing LabelBlock ...") if DEBUG;
-
-        my $label = shift @$tokens;
-
-        my @body;
-        while (@$tokens) {
-            if ($tokens->[0] isa VM::Assembler::Token::Comment ||
-                $tokens->[0] isa VM::Assembler::Token::EOL     ){
-                shift @$tokens;
-            } elsif ($tokens->[0] isa VM::Assembler::Token::Opcode) {
-                push @body => $self->parse_opcode( $tokens );
-            } else {
-                last;
-            }
-        }
-
-        return VM::Assember::AST::LabelBlock->new(
-            label => $label,
-            body  => \@body,
-        );
     }
 }
