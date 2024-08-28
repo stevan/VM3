@@ -5,6 +5,7 @@ use experimental qw[ class ];
 
 use importer 'List::Util'   => qw[ max ];
 use importer 'Time::HiRes'  => qw[ clock_gettime ];
+use importer 'Carp'         => qw[ confess ];
 
 class VM::Clock {
     use const RESOLUTION => 100_000;
@@ -13,7 +14,7 @@ class VM::Clock {
     field $seconds :reader;
     field $elapsed :reader = 0;
 
-    ADJUST {
+    method start {
         $seconds = $self->now;
     }
 
@@ -23,6 +24,8 @@ class VM::Clock {
     }
 
     method update {
+        confess 'Clock must be started before updating'
+            if not defined $seconds;
         my $now  = $self->now;
         $elapsed = max(0, ($now - $seconds));
         $seconds = $now;

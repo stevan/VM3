@@ -10,15 +10,36 @@ use Test::More;
 
 use ok 'VM::Clock';
 
+# NOTE:
+# There is some level of drift, which is to be expected when
+# doing something like this with Perl. This test tries to
+# ensure that we can stay within that level of expected drift
+# which we think of as:
+#
+# - never less than the expected value
+# - never more than the 125% of the expected value, or a max of 10
+#
+# With smaller values the drift is of greater mangnitude so
+# we need to check a wider range, but after a certain point the
+# drift stabilizes to be less than 10ms.
+
 sub within_threshold ($got, $start) {
     $got >= $start && $got <= ($start + max(10, ($start * 0.25)))
 }
 
-
 my $c = VM::Clock->new;
+isa_ok($c, 'VM::Clock');
+
+try {
+    $c->update;
+    fail('... we did not get the expected exception');
+} catch ($e) {
+    like($e, qr/^Clock must be started before updating/, '... we got the expected exception');
+}
+
+$c->start;
 
 my $e;
-
 $e = $c->update->elapsed;
 is($e, 0, "... elapsed is 0 ($e)");
 
@@ -50,6 +71,5 @@ foreach (0 .. 10_000) {
     $e = $c->update->elapsed;
     ok(within_threshold($e, 0), "... 0 elapsed is within threshold ($e)");
 }
-
 
 done_testing;
