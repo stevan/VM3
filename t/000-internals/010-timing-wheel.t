@@ -5,22 +5,21 @@ use experimental qw[ class builtin ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
 use importer 'List::Util'   => qw[ min max sum ];
+use importer 'Time::HiRes'  => qw[ sleep ];
 
-use constant SECOND       => 1000;
-use constant MINUTE       => (60 * SECOND);
-use constant HOUR         => (60 * MINUTE);
-use constant DAY          => (24 * HOUR);
-use constant WEEK         => (7  * DAY);
+use VM::Clock;
 
 class Timing::Wheel {
     use overload '""' => \&to_string;
 
     field @sizes;
     field @rotations;
+    # rotations are:
+    # - milliseconds, centiseconds, deciseconds, seconds
 
     ADJUST {
-        @sizes     = ( 10, 10, 10, 60, 60 );
-        @rotations = ( 0, 0, 0, 0, 0, 0 );
+        @sizes     = ( 10, 10, 10 );
+        @rotations = ( 0, 0, 0, 0 );
     }
 
     method advance ($by) {
@@ -42,11 +41,36 @@ class Timing::Wheel {
     }
 }
 
-
+my $c = VM::Clock->new;
 my $w = Timing::Wheel->new;
 
+say 'se:ds:cs:ms';
+$w->advance( $c->update->elapsed );
+say $w;
 
-say 'hr:mi:se:ds:cs:ms';
+sleep(0.001);
+$w->advance( $c->update->elapsed );
 say $w;
-$w->advance( (3 * HOUR) + (20 * SECOND) + (5 * MINUTE) + 17 );
+
+sleep(0.033);
+$w->advance( $c->update->elapsed );
 say $w;
+
+sleep(0.15);
+$w->advance( $c->update->elapsed );
+say $w;
+
+sleep(0.2);
+$w->advance( $c->update->elapsed );
+say $w;
+
+sleep(2.2);
+$w->advance( $c->update->elapsed );
+say $w;
+
+
+
+
+
+
+

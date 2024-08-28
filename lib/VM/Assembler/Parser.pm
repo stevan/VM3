@@ -145,8 +145,10 @@ class VM::Assembler::Parser {
                 push @operands => VM::Assember::AST::Signal->new( signal => $t );
             } elsif ($t isa VM::Assembler::Token::Variable) {
                 push @operands => VM::Assember::AST::Variable->new( var => $t );
+            } elsif ($t isa VM::Assembler::Token::Const) {
+                push @operands => VM::Assember::AST::Const->new( const => $t );
             } else {
-                push @operands => $t;
+                confess "Unexpected token: ${t}";
             }
         }
 

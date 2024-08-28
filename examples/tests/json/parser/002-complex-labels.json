@@ -36,9 +36,7 @@
             "@node" : "UnOp",
             "_op" : "PUSH",
             "oper" : {
-               "@node" : "Literal",
-               "_type" : "s",
-               "value" : "\"false\""
+               "@node" : "Const::False"
             }
          }
       ]
@@ -51,9 +49,7 @@
             "@node" : "UnOp",
             "_op" : "PUSH",
             "oper" : {
-               "@node" : "Literal",
-               "_type" : "s",
-               "value" : "\"true\""
+               "@node" : "Const::True"
             }
          },
          {

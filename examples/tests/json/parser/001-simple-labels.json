@@ -64,18 +64,6 @@
             }
          },
          {
-            "@node" : "BinOp",
-            "_op" : "CALL",
-            "oper1" : {
-               "@node" : "Address",
-               "value" : "&is_even"
-            },
-            "oper2" : {
-               "@node" : "Number",
-               "value" : "1"
-            }
-         },
-         {
             "@node" : "Op",
             "_op" : "EXIT"
          }

@@ -26,11 +26,18 @@ package VM::Assembler::Tokens {
     sub EOL       ($)         { VM::Assembler::Token::EOL       ->new( value => 'EOL' ) }
     sub EOF       ($)         { VM::Assembler::Token::EOF       ->new( value => 'EOF' ) }
 
+    sub Null      ($)         { VM::Assembler::Token::Const::Null  ->new( value => '`null'  ) }
+    sub True      ($)         { VM::Assembler::Token::Const::True  ->new( value => '`true'  ) }
+    sub False     ($)         { VM::Assembler::Token::Const::False ->new( value => '`false' ) }
+
     class VM::Assembler::Token {
         use overload '""' => 'to_string';
         field $value :param :reader;
+        field $type  :reader;
 
-        method type { (split '::' => __CLASS__)[-1] }
+        ADJUST {
+            ($type) = ((blessed $self) =~ /^VM\:\:Assembler\:\:Token\:\:(.*)$/);
+        }
 
         method to_string {
             sprintf 'TOKEN(%s, %s)' => $self->type, $self->value;
@@ -63,6 +70,11 @@ package VM::Assembler::Tokens {
 
     class VM::Assembler::Token::EOL       :isa(VM::Assembler::Token) {} # \n
     class VM::Assembler::Token::EOF       :isa(VM::Assembler::Token) {} #
+
+    class VM::Assembler::Token::Const        :isa(VM::Assembler::Token) {} # ...
+    class VM::Assembler::Token::Const::Null  :isa(VM::Assembler::Token::Const) {} # `null
+    class VM::Assembler::Token::Const::True  :isa(VM::Assembler::Token::Const) {} # `true
+    class VM::Assembler::Token::Const::False :isa(VM::Assembler::Token::Const) {} # `false
 
     class VM::Assembler::Token::Comment   :isa(VM::Assembler::Token) {} # anything after an `#` character till end of line
 }

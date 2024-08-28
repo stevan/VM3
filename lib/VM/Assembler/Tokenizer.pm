@@ -61,6 +61,8 @@ class VM::Assembler::Tokenizer {
                 $token = $self->tokenize_signal( \@chars );
             } elsif ($c eq '$') {
                 $token = $self->tokenize_variable( \@chars );
+            } elsif ($c eq '`') {
+                $token = $self->tokenize_constant( \@chars );
             } elsif ($c =~ /^[A-Z]$/) {
                 $token = $self->tokenize_opcode( \@chars );
             } elsif ($c =~ /^#$/) {
@@ -133,6 +135,24 @@ class VM::Assembler::Tokenizer {
             $directive .= shift @$chars;
         }
         return VM::Assembler::Tokens->Directive( $directive );
+    }
+
+    method tokenize_constant ( $chars ) {
+        LOG("Tokenizing constant") if DEBUG;
+        my $constant = shift @$chars;
+        my $next     = shift @$chars;
+        if ($next eq 't') {
+            shift @$chars foreach qw[ r u e ];
+            return VM::Assembler::Tokens->True;
+        } elsif ($next eq 'f') {
+            shift @$chars foreach qw[ a l s e ];
+            return VM::Assembler::Tokens->False;
+        } elsif ($next eq 'n') {
+            shift @$chars foreach qw[ u l l ];
+            return VM::Assembler::Tokens->Null;
+        } else {
+            confess "Unknown constant starting with ${next}";
+        }
     }
 
     method tokenize_variable ( $chars ) {

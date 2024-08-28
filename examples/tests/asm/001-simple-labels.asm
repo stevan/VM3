@@ -9,6 +9,5 @@
     PUSH i(2)
     PUSH i(2)
     CALL &adder, 2
-    CALL &is_even, 1
 
     EXIT

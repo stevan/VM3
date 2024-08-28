@@ -4,9 +4,9 @@
     PUSH i(2)
     MOD_INT
     JUMP_IF_ZERO &is_even.true
-        PUSH s("false")
+        PUSH `false
     .is_even.true
-        PUSH s("true")
+        PUSH `true
         JUMP &is_even.return
     .is_even.return
         RETURN

@@ -108,26 +108,6 @@
       "value" : "EOL"
    },
    {
-      "@type" : "Opcode",
-      "value" : "CALL"
-   },
-   {
-      "@type" : "Address",
-      "value" : "&is_even"
-   },
-   {
-      "@type" : "Comma",
-      "value" : ","
-   },
-   {
-      "@type" : "Number",
-      "value" : "1"
-   },
-   {
-      "@type" : "EOL",
-      "value" : "EOL"
-   },
-   {
       "@type" : "EOL",
       "value" : "EOL"
    },

@@ -60,8 +60,8 @@
       "value" : "PUSH"
    },
    {
-      "@type" : "Literal",
-      "value" : "s(\"false\")"
+      "@type" : "Const::False",
+      "value" : "`false"
    },
    {
       "@type" : "EOL",
@@ -80,8 +80,8 @@
       "value" : "PUSH"
    },
    {
-      "@type" : "Literal",
-      "value" : "s(\"true\")"
+      "@type" : "Const::True",
+      "value" : "`true"
    },
    {
       "@type" : "EOL",

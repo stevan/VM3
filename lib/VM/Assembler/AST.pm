@@ -209,4 +209,16 @@ package VM::Assembler::AST {
         }
     }
 
+    class VM::Assember::AST::Const :isa(VM::Assembler::AST::Node) {
+        field $const :param :reader;
+
+        method to_string {
+            sprintf "%s{}", $const->type
+        }
+
+        method to_JSON {
+            +{ '@node' => $const->type }
+        }
+    }
+
 }
