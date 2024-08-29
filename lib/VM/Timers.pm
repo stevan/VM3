@@ -7,11 +7,13 @@ use VM::Timers::Timer;
 use VM::Timers::Wheel;
 
 class VM::Timers {
+    # FIXME: this should be configurable
+    use constant WHEEL_DEPTH => 5;
 
     field $wheel :reader;
 
     ADJUST {
-        $wheel = VM::Timers::Wheel->new( depth => 5 );
+        $wheel = VM::Timers::Wheel->new( depth => WHEEL_DEPTH );
     }
 
     method add_timer ($ms, $event) {
