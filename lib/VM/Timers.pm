@@ -4,7 +4,6 @@ use v5.40;
 use experimental qw[ class ];
 
 use VM::Timers::Timer;
-use VM::Timers::Duration;
 use VM::Timers::Wheel;
 
 class VM::Timers {
@@ -17,7 +16,7 @@ class VM::Timers {
 
     method add_timer ($ms, $event) {
         my $timer = VM::Timers::Timer->new(
-            duration => VM::Timers::Duration->new->in_milliseconds( $ms ),
+            duration => $ms,
             event    => $event
         );
 

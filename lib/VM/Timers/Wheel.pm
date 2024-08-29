@@ -6,7 +6,7 @@ use experimental qw[ class ];
 use importer 'Data::Dumper' => qw[ Dumper ];
 
 use VM::Timers::Timer;
-use VM::Timers::Wheel::Time;
+use VM::Timers::Wheel::State;
 
 class VM::Timers::Wheel {
     use constant DEBUG => $ENV{DEBUG} // 0;
@@ -32,7 +32,7 @@ class VM::Timers::Wheel {
         @wheel = map { [ map { [] } 1 .. 10 ] } @breakdowns;
 
         # intialize the time state to zero
-        $state = VM::Timers::Wheel::Time->new( breakdowns => \@breakdowns );
+        $state = VM::Timers::Wheel::State->new( breakdowns => \@breakdowns );
 
         # calculate the max timer
         $max_timer = $breakdowns[0] * 10;
@@ -80,26 +80,26 @@ class VM::Timers::Wheel {
     }
 
     method move_timer ($timer, $level) {
-        my $time  = $timer->end_time;
-        my @units = $time->units;
-        my $size  = $#breakdowns;
-        my $next  = $level;
+        my $end_state  = $timer->end_state;
+        my @units      = $end_state->units;
+        my $max_level  = $#breakdowns;
+        my $next_level = $level;
 
-        if ($next >= $size) {
-            LOG("triggering [${time}]") if DEBUG;
+        if ($next_level >= $max_level) {
+            LOG("triggering [${end_state}]") if DEBUG;
             $timer->fire;
             return;
         }
 
-        while (++$next) {
-            if ($next > $size) {
-                LOG("triggering [${time}]") if DEBUG;
+        while (++$next_level) {
+            if ($next_level > $max_level) {
+                LOG("triggering [${end_state}]") if DEBUG;
                 $timer->fire;
                 last;
-            } elsif ($units[$next]) {
-                LOG("advancing [${time}] from $level \@ ".($units[$level])
-                    ." to $next \@ ".($units[$next])."") if DEBUG;
-                push @{ $wheel[$next]->[ $units[$next] ] } => $timer;
+            } elsif ($units[$next_level]) {
+                LOG("advancing [${end_state}] from $level \@ ".($units[$level])
+                    ." to $next_level \@ ".($units[$next_level])."") if DEBUG;
+                push @{ $wheel[$next_level]->[ $units[$next_level] ] } => $timer;
                 last;
             }
         }
@@ -128,9 +128,9 @@ class VM::Timers::Wheel {
     ## -------------------------------------------------------------------------
 
     method add_timer ($timer) {
-        my $end_time = $timer->calculate_end_time( $state );
+        my $end_state = $timer->calculate_end_state( $state );
 
-        foreach my ($i, $unit) ( indexed $end_time->units ) {
+        foreach my ($i, $unit) ( indexed $end_state->units ) {
             if ($unit) {
                 push @{ $wheel[$i]->[ $unit ] } => $timer;
                 last;
@@ -160,7 +160,7 @@ class VM::Timers::Wheel {
 
         say('-' x 33);
         say '  now: ',$state->to_string;
-        say ' next: ',($next ? $next->end_time->to_string : '~');
+        say ' next: ',($next ? $next->end_state->to_string : '~');
         say('-' x 33);
         say '         ', join '.' => 0 .. 9;
         say('-' x 33);

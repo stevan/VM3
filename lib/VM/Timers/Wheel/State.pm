@@ -5,7 +5,7 @@ use experimental qw[ class ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
 
-class VM::Timers::Wheel::Time {
+class VM::Timers::Wheel::State {
     use overload '""' => \&to_string;
 
     field $breakdowns :param :reader;
@@ -55,8 +55,8 @@ class VM::Timers::Wheel::Time {
 
     ## -------------------------------------------------------------------------
 
-    method add_duration ($duration) {
-        my $ms = $duration->as_milliseconds;
+    method calculate_future_state ($duration) {
+        my $ms = $duration;
 
         my @decomposed;
         my @event_time;
@@ -75,7 +75,7 @@ class VM::Timers::Wheel::Time {
             $remainder -= ($decomposed[-1] * $size);
         }
 
-        return VM::Timers::Wheel::Time->new(
+        return VM::Timers::Wheel::State->new(
             breakdowns => $breakdowns
         )->in_units(
             @event_time
