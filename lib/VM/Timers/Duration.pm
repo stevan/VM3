@@ -8,17 +8,19 @@ class VM::Timers::Duration {
 
     field $_absolute :param :reader = 0;
 
-    method in_seconds      { $_absolute * 0.001 }
-    method in_milliseconds { $_absolute }
+    method as_seconds      { $_absolute * 0.001 }
+    method as_milliseconds { $_absolute }
 
     ## -------------------------------------------------------------------------
 
-    sub from_seconds ($class, $seconds) {
-        $class->from_milliseconds( $seconds * 1000 );
+    method in_seconds ($sec) {
+        $_absolute = $sec * 1000;
+        $self;
     }
 
-    sub from_milliseconds ($class, $milliseconds) {
-        return $class->new( _absolute => $milliseconds )
+    method in_milliseconds ($ms) {
+        $_absolute = $ms;
+        $self;
     }
 
     ## -------------------------------------------------------------------------
@@ -29,7 +31,7 @@ class VM::Timers::Duration {
 
     ## -------------------------------------------------------------------------
 
-    method compare_to ($d) { $_absolute <=> $d->in_milliseconds }
+    method compare_to ($d) { $_absolute <=> $d->as_milliseconds }
 
     method equal_to     ($d) { $self->compare_to($d) ==  0 }
     method less_than    ($d) { $self->compare_to($d) == -1 }

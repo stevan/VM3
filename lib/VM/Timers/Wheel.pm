@@ -1,102 +1,141 @@
 #!perl
 
-=pod
-
-create arrays for each of the sizes (s,d,c,m)
-
-the s array is infinite, but the others are from 0 - 10
-
-adding a timer:
-- $end_time = clock->now + timer->duration
-- @gears = decomose($end_time);
-
-- push the timer into the lowest resolution bucket
-  as this must first be met before we run anything more
-
-if (seconds)
-    push wheel[seconds][ gears[seconds] ], timer;
-    last
-elsif (*)
-    push wheel[*][ gears[*] ], timer
-    last
-
-with each advance/tick:
-
-    check_timers in all the spokes of the wheel:
-
-        wheel[seconds][ $current_second ],
-        wheel[*      ][ $current_*      ],
-
-    - if the timer has higher resolution
-        - move it into the next level of buckets
-            - add it to the approriate index
-
-
-
-
-=cut
-
 use v5.40;
 use experimental qw[ class ];
+
+use importer 'Data::Dumper' => qw[ Dumper ];
+
+use VM::Timers::Wheel::Time;
 
 class VM::Timers::Wheel {
     use overload '""' => \&to_string;
 
-    field $seconds      :param :reader = 0;
-    field $deciseconds  :param :reader = 0;
-    field $centiseconds :param :reader = 0;
-    field $milliseconds :param :reader = 0;
+    field $depth :param :reader;
 
-    ## -------------------------------------------------------------------------
+    field $max_timer :reader;
 
-    my sub compose_ms ($sec, $dec, $cen, $ms) {
-        return $ms         +
-              ($cen * 10)  +
-              ($dec * 100) +
-              ($sec * 1000);
-    }
+    field @wheel;
+    field @breakdowns;
+    field $state;
 
-    my sub decompose_ms ($ms) {
-        my $sec = int($ms / 1000);
-        $ms -= ($sec * 1000);
+    ADJUST {
+        # initialize breakdowns
+        @breakdowns = (1);
+        push @breakdowns => ( $breakdowns[-1] * 10 ) foreach 1 .. ($depth - 1);
+        @breakdowns = reverse @breakdowns;
 
-        my $dec = int($ms / 100);
-        $ms -= ($dec * 100);
+        # initialize wheel
+        @wheel = map { [ map { [] } 1 .. 10 ] } @breakdowns;
 
-        my $cen = int($ms / 10);
-        $ms -= ($cen * 10);
+        # intialize the time state to zero
+        $state = VM::Timers::Wheel::Time->new( breakdowns => \@breakdowns );
 
-        return ($sec, $dec, $cen, $ms);
+        # calculate the max timer
+        $max_timer = $breakdowns[0] * 10;
     }
 
     ## -------------------------------------------------------------------------
 
-    method in_seconds      { $self->in_milliseconds * 0.001 }
-    method in_milliseconds {
-        compose_ms( $seconds, $deciseconds, $centiseconds, $milliseconds )
+    method advance_by ($n) {
+        $state->advance_by($n);
+
+        foreach my ($i, $unit) ( indexed $state->units ) {
+            my @events = $wheel[ $i ]->[ $unit ]->@*;
+            if (@events) {
+                warn "found events i: $i unit: $unit\n";
+
+                $wheel[$i]->[ $unit ]->@* = ();
+
+                foreach my $event (@events) {
+                    $self->move_event( $event, $i );
+                }
+            }
+        }
+    }
+
+    method move_event ($event, $level) {
+        my ($time, $cb) = @$event;
+
+        my @units = $time->units;
+        my $size  = $#breakdowns;
+        my $next  = $level;
+
+        if ($next >= $size) {
+            $cb->();
+            return;
+        }
+
+        while (++$next) {
+            if ($next > $size) {
+                say "triggering [${time}]";
+                $cb->();
+                last;
+            } elsif ($units[$next]) {
+                say "advancing [${time}] from $level \@ ".($units[$level])." to $next \@ ".($units[$next]);
+                push @{ $wheel[$next]->[ $units[$next] ] } => $event;
+                last;
+            }
+        }
     }
 
     ## -------------------------------------------------------------------------
 
-    method advance_by ($elapsed) {
-        my ($sec, $dec, $cen, $ms) = decompose_ms( $elapsed );
+    method add_timer ($duration, $event) {
+        my $event_time = $state->add_duration( $duration );
 
-        $seconds      += $sec;
-        $deciseconds  += $dec;
-        $centiseconds += $cen;
-        $milliseconds += $ms;
-
-        $self;
+        foreach my ($i, $unit) ( indexed $event_time->units ) {
+            if ($unit) {
+                push @{ $wheel[$i]->[ $unit ] } => [ $event_time, $event ];
+                last;
+            }
+        }
     }
 
     ## -------------------------------------------------------------------------
+
+    method dump_wheel_info {
+        say('-' x 36);
+        say ' max_depth';
+        say '  ├─in ms  : ',$max_timer;
+        say '  ├─in sec : ',($max_timer * 0.001);
+        say '  ╰─in min : ',(sprintf '%0.2f' => (($max_timer * 0.001) / 60));
+        say ' breakdown : ',(join ', ' => @breakdowns);
+        say('-' x 36);
+    }
+
+    method dump_wheel {
+
+        my @units = $state->units;
+
+        say('-' x 33);
+        say '  @ ',$state->to_string;
+        say('-' x 33);
+        say '         ', join '.' => 0 .. 9;
+        say('-' x 33);
+        foreach my ($i, $spoke) ( indexed @wheel ) {
+
+            my @spokes;
+            foreach my ($j, $s) (indexed @$spoke) {
+                #warn "i: $j s:".(scalar @$s)." units[$i]: ".$units[$i];
+
+                my $x;
+                if ( $j == $units[$i] ) {
+                    $x = "\e[7m".(scalar @$s)."\e[0m";
+                }
+                else {
+                    $x = scalar @$s;
+                }
+                push @spokes => $x;
+            }
+
+            say sprintf(' %5d > ' => $breakdowns[$i]),
+                join ':' => @spokes;
+        }
+        say('-' x 33);
+    }
 
     method to_string {
-        sprintf 'Wheel[%02d:%02d:%02d:%02d]',
-            $seconds,
-            $deciseconds,
-            $centiseconds,
-            $milliseconds;
+        $state->to_string
     }
 }
 

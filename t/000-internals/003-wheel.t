@@ -6,6 +6,73 @@ use experimental qw[ class builtin ];
 use importer 'Data::Dumper' => qw[ Dumper ];
 use importer 'Time::HiRes'  => qw[ sleep ];
 
+use VM::Timers::Wheel;
+use VM::Timers::Duration;
+
+my $x = 0;
+
+my $w = VM::Timers::Wheel->new( depth => 5 );
+$w->dump_wheel_info;
+
+$w->add_timer(
+    VM::Timers::Duration->new->in_milliseconds(3),
+    sub { say "0.003"; $x++ }
+);
+
+$w->add_timer(
+    VM::Timers::Duration->new->in_milliseconds(10),
+    sub { say "0.010"; $x++ }
+);
+
+$w->add_timer(
+    VM::Timers::Duration->new->in_milliseconds(12),
+    sub { say "0.012"; $x++ }
+);
+
+$w->add_timer(
+    VM::Timers::Duration->new->in_milliseconds(12),
+    sub { say "0.012"; $x++ }
+);
+
+$w->dump_wheel;
+my $z = <>;
+
+while (1) {
+    print "\e[2J\e[H\n";
+    $w->advance_by(1);
+    $w->dump_wheel;
+    my $z = <>;
+}
+
+$w->dump_wheel;
+
+warn '=======================================',"\n";
+
+$w->advance_by(9);
+$w->dump_wheel;
+$w->advance_by(1);
+$w->dump_wheel;
+$w->advance_by(36);
+$w->dump_wheel;
+
+__END__
+
+$w->add_timer(
+    VM::Timers::Duration->new->in_milliseconds(33),
+    sub { say "0.033"; $x++ }
+);
+
+$w->advance_by(21);
+$w->dump_wheel;
+$w->advance_by(1);
+$w->dump_wheel;
+$w->advance_by(1);
+$w->dump_wheel;
+
+__END__
+
+
+
 use const S => 0;
 use const D => 1;
 use const C => 2;
@@ -83,17 +150,20 @@ sub move_timer ($timer, $level) {
 }
 
 my sub decompose_ms ($ms) {
-    my $sec = int($ms / 1000);
-    $ms -= ($sec * 1000);
+    #                    10s,  sec, 10th, 100th, ms
+    my @breakdown = ( 1000,  100,    10,  1 );
+    my @values;
 
-    my $dec = int($ms / 100);
-    $ms -= ($dec * 100);
+    my $remainder = $ms;
+    foreach my $size ( @breakdown ) {
+        push @values => int($remainder / $size);
+        $remainder -= ($values[-1] * $size);
+    }
 
-    my $cen = int($ms / 10);
-    $ms -= ($cen * 10);
-
-    return ($sec, $dec, $cen, $ms);
+    return @values;
 }
+
+#die Dumper [ decompose_ms( 999999 ) ];
 
 my $x = 0;
 
