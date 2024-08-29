@@ -39,7 +39,7 @@ my $z = <>;
 
 while (1) {
     print "\e[2J\e[H\n";
-    $w->advance_by(1);
+    $w->advance_by(2);
     $w->dump_wheel;
     my $z = <>;
 }

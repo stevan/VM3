@@ -8,6 +8,9 @@ use importer 'Data::Dumper' => qw[ Dumper ];
 use VM::Timers::Wheel::Time;
 
 class VM::Timers::Wheel {
+    use constant DEBUG => $ENV{DEBUG} // 0;
+    sub LOG ($msg) { warn "LOG: ${msg}\n" }
+
     use overload '""' => \&to_string;
 
     field $depth :param :reader;
@@ -37,18 +40,40 @@ class VM::Timers::Wheel {
     ## -------------------------------------------------------------------------
 
     method advance_by ($n) {
+        my @old = $state->units;
+
         $state->advance_by($n);
 
         foreach my ($i, $unit) ( indexed $state->units ) {
-            my @events = $wheel[ $i ]->[ $unit ]->@*;
-            if (@events) {
-                warn "found events i: $i unit: $unit\n";
+            my @events;
 
-                $wheel[$i]->[ $unit ]->@* = ();
+            my $old = $old[$i];
 
-                foreach my $event (@events) {
-                    $self->move_event( $event, $i );
+            my @indicies;
+            LOG("old[$i](${old}) | unit(${unit})") if DEBUG;
+            if ( $old == $unit) {
+                # do nothing, no change ...
+                LOG("... equal, so doing nothing") if DEBUG;
+                #@indicies = ($unit);
+            } elsif ($old < $unit) {
+                # grab all the possible affected events
+                LOG("... less than") if DEBUG;
+                @indicies = ($old + 1) .. $unit;
+            } elsif ($old > $unit) {
+                LOG("... greater than") if DEBUG;
+                @indicies = 0 .. $unit;
+            }
+
+            if (@indicies) {
+                LOG("... grabbing all events from (".(join ', ' => @indicies).")") if DEBUG;
+                foreach my $bucket ( $wheel[ $i ]->@[ @indicies ] ) {
+                    LOG(">>> found (".(scalar @$bucket).") events wheel[$i][$unit]") if DEBUG;
+                    while (@$bucket) {
+                        my $event = shift @$bucket;
+                        $self->move_event( $event, $i );
+                    }
                 }
+
             }
         }
     }
@@ -61,17 +86,19 @@ class VM::Timers::Wheel {
         my $next  = $level;
 
         if ($next >= $size) {
+            LOG("triggering [${time}]") if DEBUG;
             $cb->();
             return;
         }
 
         while (++$next) {
             if ($next > $size) {
-                say "triggering [${time}]";
+                LOG("triggering [${time}]") if DEBUG;
                 $cb->();
                 last;
             } elsif ($units[$next]) {
-                say "advancing [${time}] from $level \@ ".($units[$level])." to $next \@ ".($units[$next]);
+                LOG("advancing [${time}] from $level \@ ".($units[$level])
+                    ." to $next \@ ".($units[$next])."") if DEBUG;
                 push @{ $wheel[$next]->[ $units[$next] ] } => $event;
                 last;
             }

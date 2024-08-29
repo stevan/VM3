@@ -16,7 +16,6 @@ class VM::Timers::Wheel::Time {
         @units = (0) x (scalar @$breakdowns);
     }
 
-
     ## -------------------------------------------------------------------------
 
     method in_units ( @u ) { @units = @u; $self }
