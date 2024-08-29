@@ -5,6 +5,7 @@ use experimental qw[ class ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
 
+use VM::Timers::Timer;
 use VM::Timers::Wheel::Time;
 
 class VM::Timers::Wheel {
@@ -69,8 +70,8 @@ class VM::Timers::Wheel {
                 foreach my $bucket ( $wheel[ $i ]->@[ @indicies ] ) {
                     LOG(">>> found (".(scalar @$bucket).") events wheel[$i][$unit]") if DEBUG;
                     while (@$bucket) {
-                        my $event = shift @$bucket;
-                        $self->move_event( $event, $i );
+                        my $timer = shift @$bucket;
+                        $self->move_timer( $timer, $i );
                     }
                 }
 
@@ -78,28 +79,27 @@ class VM::Timers::Wheel {
         }
     }
 
-    method move_event ($event, $level) {
-        my ($time, $cb) = @$event;
-
+    method move_timer ($timer, $level) {
+        my $time  = $timer->end_time;
         my @units = $time->units;
         my $size  = $#breakdowns;
         my $next  = $level;
 
         if ($next >= $size) {
             LOG("triggering [${time}]") if DEBUG;
-            $cb->();
+            $timer->fire;
             return;
         }
 
         while (++$next) {
             if ($next > $size) {
                 LOG("triggering [${time}]") if DEBUG;
-                $cb->();
+                $timer->fire;
                 last;
             } elsif ($units[$next]) {
                 LOG("advancing [${time}] from $level \@ ".($units[$level])
                     ." to $next \@ ".($units[$next])."") if DEBUG;
-                push @{ $wheel[$next]->[ $units[$next] ] } => $event;
+                push @{ $wheel[$next]->[ $units[$next] ] } => $timer;
                 last;
             }
         }
@@ -107,16 +107,38 @@ class VM::Timers::Wheel {
 
     ## -------------------------------------------------------------------------
 
-    method add_timer ($duration, $event) {
-        my $event_time = $state->add_duration( $duration );
+    method find_next_timer {
+        my $n = $#breakdowns;
+        my $timer;
+    OUTER:
+        while ($n >= 0) {
+            foreach my ($i, $bucket) (indexed $wheel[$n]->@*) {
+                if (@$bucket) {
+                    #LOG "Found events at wheel[$n]->[$i]" if DEBUG;
+                    $timer = $bucket->[0];
+                    last OUTER;
+                }
+            }
+            $n--;
+        }
 
-        foreach my ($i, $unit) ( indexed $event_time->units ) {
+        return $timer;
+    }
+
+    ## -------------------------------------------------------------------------
+
+    method add_timer ($timer) {
+        my $end_time = $timer->calculate_end_time( $state );
+
+        foreach my ($i, $unit) ( indexed $end_time->units ) {
             if ($unit) {
-                push @{ $wheel[$i]->[ $unit ] } => [ $event_time, $event ];
+                push @{ $wheel[$i]->[ $unit ] } => $timer;
                 last;
             }
         }
     }
+
+    # TODO - cancel a timer (find and remove)
 
     ## -------------------------------------------------------------------------
 
@@ -134,8 +156,11 @@ class VM::Timers::Wheel {
 
         my @units = $state->units;
 
+        my $next = $self->find_next_timer;
+
         say('-' x 33);
-        say '  @ ',$state->to_string;
+        say '  now: ',$state->to_string;
+        say ' next: ',($next ? $next->end_time->to_string : '~');
         say('-' x 33);
         say '         ', join '.' => 0 .. 9;
         say('-' x 33);
@@ -165,42 +190,5 @@ class VM::Timers::Wheel {
         $state->to_string
     }
 }
-
-
-__END__
-
-class Timing::Wheel {
-    use overload '""' => \&to_string;
-
-    field @sizes;
-    field @rotations;
-    # rotations are:
-    # - milliseconds, centiseconds, deciseconds, seconds
-
-    ADJUST {
-        @sizes     = ( 10, 10, 10 );
-        @rotations = ( 0, 0, 0, 0 );
-    }
-
-    method advance ($by) {
-        my $i = 0;
-        $rotations[$i] += $by;
-
-        while ($i < $#rotations) {
-            #say "$i : ",$rotations[$i];
-            while ($rotations[$i] >= $sizes[$i]) {
-                $rotations[$i] -= $sizes[$i];
-                $rotations[$i + 1]++;
-            }
-            $i++;
-        }
-    }
-
-    method to_string {
-        join ':' => reverse map { sprintf '%02d', $_ } @rotations;
-    }
-}
-
-
 
 
