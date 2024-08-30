@@ -72,16 +72,9 @@ class VM::Timers::Wheel::State {
 
     ## -------------------------------------------------------------------------
 
-    method equal_to ($s) {
-        my $is_equal = true;
-        foreach my ($l, $r) (mesh \@units, [ $s->units ]) {
-            if ($l != $r) {
-                $is_equal = false;
-                last;
-            }
-        }
-        return $is_equal;
-    }
+    method less_than    ($s) { (join ':' => @units) lt (join ':' => $s->units) }
+    method greater_than ($s) { (join ':' => @units) gt (join ':' => $s->units) }
+    method equal_to     ($s) { (join ':' => @units) eq (join ':' => $s->units) }
 
     method to_string {
         sprintf 'Time[%s]', join ':' => @units;
