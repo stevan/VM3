@@ -83,21 +83,21 @@ class Wheel {
     # ╰──╯
 
     method calculate_index ($col, $t) {
-        LOG("__ CALCULATING INDEX FOR $t at $col") if DEBUG >= 5;
+        LOG("__ CALCULATING INDEX FOR $t at $col") if DEBUG >= 15;
         my ($e1, $e2) = @powers10[ $col, $col + 1 ];
         LOG(sprintf "t: %d (%s) => (e: %5d e-1: %5d)",
-                    $t, $names[$col], $e1, $e2) if DEBUG >= 5;
+                    $t, $names[$col], $e1, $e2) if DEBUG >= 15;
         LOG(sprintf "((%d %% %d) - (%d %% %d)) / %d",
-                    $t, $e1, $t, $e2, $e2) if DEBUG >= 10;
+                    $t, $e1, $t, $e2, $e2) if DEBUG >= 15;
         LOG(sprintf "((%d) - (%d)) / %d",
-                    $t % $e1, $t % $e2, $e2) if DEBUG >= 10;
+                    $t % $e1, $t % $e2, $e2) if DEBUG >= 15;
         LOG(sprintf "%d / %d",
-                    ($t % $e1) - ($t % $e2), $e2) if DEBUG >= 10;
+                    ($t % $e1) - ($t % $e2), $e2) if DEBUG >= 15;
         LOG(sprintf "%d",
-                    (($t % $e1) - ($t % $e2)) / $e2) if DEBUG >= 10;
+                    (($t % $e1) - ($t % $e2)) / $e2) if DEBUG >= 15;
         my $row = (($t % $e1) - ( $t % $e2 )) / $e2;
         my $idx = ($col * 10) + $row;
-        LOG("__ GOT INDEX: $idx") if DEBUG >= 5;
+        LOG("__ GOT INDEX: $idx") if DEBUG >= 15;
         return $idx;
     }
 
@@ -142,10 +142,12 @@ my $w = Wheel->new;
 
 $w->dump_wheel;
 
-$w->advance_by(321);
+$w->advance_by(21);
 $w->dump_wheel;
 
-$w->add_timer( 1300, sub { say 421 } );
+$w->add_timer(   13, sub { say   13 } );
+$w->add_timer(   56, sub { say   56 } );
+$w->add_timer( 1300, sub { say 1300 } );
 $w->dump_wheel;
 
 $w->advance_by(800);
