@@ -5,22 +5,26 @@ use experimental qw[ class ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
 
+use VM::Clock;
 use VM::Timers::Timer;
 use VM::Timers::Wheel::State;
 
 class VM::Timers::Wheel {
-    use constant DEBUG => $ENV{DEBUG} // 0;
+    use constant DEBUG => $ENV{TIMERS_DEBUG} // 0;
     sub LOG ($msg) { warn "LOG: ${msg}\n" }
 
     use overload '""' => \&to_string;
 
     field $depth :param :reader;
 
-    field $max_timer :reader;
+    field $max_timeout :reader;
 
-    field @wheel;
-    field @breakdowns;
-    field $state;
+    field @wheel      :reader;
+    field @breakdowns :reader;
+    field $state      :reader;
+    field $clock      :reader;
+
+    field $timer_count = 0;
 
     ADJUST {
         # initialize breakdowns
@@ -34,11 +38,19 @@ class VM::Timers::Wheel {
         # intialize the time state to zero
         $state = VM::Timers::Wheel::State->new( breakdowns => \@breakdowns );
 
+        #initialize the clock
+        $clock = VM::Clock->new;
+
         # calculate the max timer
-        $max_timer = $breakdowns[0] * 10;
+        $max_timeout = $breakdowns[0] * 10;
     }
 
     ## -------------------------------------------------------------------------
+
+    method update {
+        return 0 if $timer_count == 0;
+        $self->advance_by( $clock->update->elapsed );
+    }
 
     method advance_by ($n) {
         my @old = $state->units;
@@ -71,7 +83,7 @@ class VM::Timers::Wheel {
                     LOG(">>> found (".(scalar @$bucket).") events wheel[$i][$unit]") if DEBUG;
                     while (@$bucket) {
                         my $timer = shift @$bucket;
-                        $self->move_timer( $timer, $i );
+                        $self->_move_timer( $timer, $i );
                     }
                 }
 
@@ -79,7 +91,7 @@ class VM::Timers::Wheel {
         }
     }
 
-    method move_timer ($timer, $level) {
+    method _move_timer ($timer, $level) {
         my $end_state  = $timer->end_state;
         my @units      = $end_state->units;
         my $max_level  = $#breakdowns;
@@ -87,6 +99,7 @@ class VM::Timers::Wheel {
 
         if ($next_level >= $max_level) {
             LOG("triggering [${end_state}]") if DEBUG;
+            $timer_count--;
             $timer->fire;
             return;
         }
@@ -94,6 +107,7 @@ class VM::Timers::Wheel {
         while (++$next_level) {
             if ($next_level > $max_level) {
                 LOG("triggering [${end_state}]") if DEBUG;
+                $timer_count--;
                 $timer->fire;
                 last;
             } elsif ($units[$next_level]) {
@@ -108,6 +122,8 @@ class VM::Timers::Wheel {
     ## -------------------------------------------------------------------------
 
     method find_next_timer {
+        return if $timer_count == 0;
+
         my $n = $#breakdowns;
         my $timer;
     OUTER:
@@ -128,11 +144,17 @@ class VM::Timers::Wheel {
     ## -------------------------------------------------------------------------
 
     method add_timer ($timer) {
+        if ($timer_count == 0) {
+            $state->reset;
+            $clock->start;
+        }
+
         my $end_state = $timer->calculate_end_state( $state );
 
         foreach my ($i, $unit) ( indexed $end_state->units ) {
             if ($unit) {
                 push @{ $wheel[$i]->[ $unit ] } => $timer;
+                $timer_count++;
                 last;
             }
         }
@@ -145,9 +167,9 @@ class VM::Timers::Wheel {
     method dump_wheel_info {
         say('-' x 36);
         say ' max_depth';
-        say '  ├─in ms  : ',$max_timer;
-        say '  ├─in sec : ',($max_timer * 0.001);
-        say '  ╰─in min : ',(sprintf '%0.2f' => (($max_timer * 0.001) / 60));
+        say '  ├─in ms  : ',$max_timeout;
+        say '  ├─in sec : ',($max_timeout * 0.001);
+        say '  ╰─in min : ',(sprintf '%0.2f' => (($max_timeout * 0.001) / 60));
         say ' breakdown : ',(join ', ' => @breakdowns);
         say('-' x 36);
     }
@@ -161,6 +183,7 @@ class VM::Timers::Wheel {
         say('-' x 33);
         say '  now: ',$state->to_string;
         say ' next: ',($next ? $next->end_state->to_string : '~');
+        say 'count: ',$timer_count;
         say('-' x 33);
         say '         ', join '.' => 0 .. 9;
         say('-' x 33);
@@ -172,10 +195,11 @@ class VM::Timers::Wheel {
 
                 my $x;
                 if ( $j == $units[$i] ) {
-                    $x = "\e[7m".(scalar @$s)."\e[0m";
+                    $x = "\e[0;102m".(scalar @$s)."\e[0m";
                 }
                 else {
                     $x = scalar @$s;
+                    $x = "\e[0;9${x}m".($x ? "\e[7m" : '').$x."\e[0m";
                 }
                 push @spokes => $x;
             }

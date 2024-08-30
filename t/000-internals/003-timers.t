@@ -23,12 +23,23 @@ if (DEBUG) {
     $timers->wheel->dump_wheel;
     my $z = <>;
 
+    #for (0 .. 20) {
+    #    print "\e[2J\e[H\n";
+    #    $timers->wheel->advance_by(1);
+    #    $timers->wheel->dump_wheel;
+    #    my $z = <>;
+    #}
+    #$timers->add_timer(10, sub { DEBUG ? say "0.010" : pass('... timer fired at 0.010'); $x++ });
+    #$timers->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
+    #$timers->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
+
     while (1) {
         print "\e[2J\e[H\n";
         $timers->wheel->advance_by(1);
         $timers->wheel->dump_wheel;
         my $z = <>;
     }
+
 } else {
     $timers->wheel->advance_by(3);
     is($x, 1, '... the right amount of events fired');

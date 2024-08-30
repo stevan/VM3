@@ -16,6 +16,10 @@ class VM::Timers {
         $wheel = VM::Timers::Wheel->new( depth => WHEEL_DEPTH );
     }
 
+    method update {
+        $wheel->update;
+    }
+
     method add_timer ($ms, $event) {
         my $timer = VM::Timers::Timer->new(
             duration => $ms,

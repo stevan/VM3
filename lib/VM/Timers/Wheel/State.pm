@@ -4,6 +4,7 @@ use v5.40;
 use experimental qw[ class ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
+use importer 'List::Util'   => qw[ merge ];
 
 class VM::Timers::Wheel::State {
     use overload '""' => \&to_string;
@@ -13,27 +14,14 @@ class VM::Timers::Wheel::State {
     field @units :reader;
 
     ADJUST {
+        $self->reset;
+    }
+
+    method reset {
         @units = (0) x (scalar @$breakdowns);
     }
 
-    ## -------------------------------------------------------------------------
-
     method in_units ( @u ) { @units = @u; $self }
-
-    method in_seconds ($sec) {
-        $self->in_milliseconds( $sec * 1000 );
-        $self;
-    }
-
-    method in_milliseconds ($ms) {
-        @units = ();
-        my $remainder = $ms;
-        foreach my $size ( @$breakdowns ) {
-            push @units => int($remainder / $size);
-            $remainder -= ($units[-1] * $size);
-        }
-        $self;
-    }
 
     ## -------------------------------------------------------------------------
 
@@ -83,6 +71,17 @@ class VM::Timers::Wheel::State {
     }
 
     ## -------------------------------------------------------------------------
+
+    method equal_to ($s) {
+        my $is_equal = true;
+        foreach my ($l, $r) (merge \@units, [ $s->units ]) {
+            if ($l != $r) {
+                $is_equal = false;
+                last;
+            }
+        }
+        return $is_equal;
+    }
 
     method to_string {
         sprintf 'Time[%s]', join ':' => @units;
