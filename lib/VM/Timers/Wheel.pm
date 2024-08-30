@@ -22,7 +22,6 @@ class VM::Timers::Wheel {
     field @wheel      :reader;
     field @breakdowns :reader;
     field $state      :reader;
-    field $clock      :reader;
 
     field $timer_count = 0;
 
@@ -37,9 +36,6 @@ class VM::Timers::Wheel {
 
         # intialize the time state to zero
         $state = VM::Timers::Wheel::State->new( breakdowns => \@breakdowns );
-
-        #initialize the clock
-        $clock = VM::Clock->new;
 
         # calculate the max timer
         $max_timeout = $breakdowns[0] * 10;

@@ -7,45 +7,45 @@ use constant DEBUG => $ENV{DEBUG} // 0;
 
 use Test::More;
 
-use VM::Timers;
+use VM;
 
 my $x = 0;
 
-my $timers = VM::Timers->new;
-$timers->wheel->dump_wheel_info if DEBUG;
+my $vm = VM->new;
+$vm->wheel->dump_wheel_info if DEBUG;
 
-$timers->add_timer( 3, sub { DEBUG ? say "0.003" : pass('... timer fired at 0.003'); $x++ });
-$timers->add_timer(10, sub { DEBUG ? say "0.010" : pass('... timer fired at 0.010'); $x++ });
-$timers->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
-$timers->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
+$vm->add_timer( 3, sub { DEBUG ? say "0.003" : pass('... timer fired at 0.003'); $x++ });
+$vm->add_timer(10, sub { DEBUG ? say "0.010" : pass('... timer fired at 0.010'); $x++ });
+$vm->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
+$vm->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
 
 if (DEBUG) {
-    $timers->wheel->dump_wheel;
+    $vm->wheel->dump_wheel;
     my $z = <>;
 
     #for (0 .. 20) {
     #    print "\e[2J\e[H\n";
-    #    $timers->wheel->advance_by(1);
-    #    $timers->wheel->dump_wheel;
+    #    $vm->wheel->advance_by(1);
+    #    $vm->wheel->dump_wheel;
     #    my $z = <>;
     #}
-    #$timers->add_timer(10, sub { DEBUG ? say "0.010" : pass('... timer fired at 0.010'); $x++ });
-    #$timers->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
-    #$timers->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
+    #$vm->add_timer(10, sub { DEBUG ? say "0.010" : pass('... timer fired at 0.010'); $x++ });
+    #$vm->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
+    #$vm->add_timer(12, sub { DEBUG ? say "0.012" : pass('... timer fired at 0.012'); $x++ });
 
     while (1) {
         print "\e[2J\e[H\n";
-        $timers->wheel->advance_by(1);
-        $timers->wheel->dump_wheel;
+        $vm->wheel->advance_by(1);
+        $vm->wheel->dump_wheel;
         my $z = <>;
     }
 
 } else {
-    $timers->wheel->advance_by(3);
+    $vm->wheel->advance_by(3);
     is($x, 1, '... the right amount of events fired');
-    $timers->wheel->advance_by(7);
+    $vm->wheel->advance_by(7);
     is($x, 2, '... the right amount of events fired');
-    $timers->wheel->advance_by(2);
+    $vm->wheel->advance_by(2);
     is($x, 4, '... the right amount of events fired');
 }
 
