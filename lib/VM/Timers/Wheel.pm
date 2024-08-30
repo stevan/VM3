@@ -47,53 +47,46 @@ class VM::Timers::Wheel {
 
     ## -------------------------------------------------------------------------
 
-    method update {
-        return 0 if $timer_count == 0;
-        $self->advance_by( $clock->update->elapsed );
-    }
-
     method advance_by ($n) {
-        my @old = $state->units;
+        LOG("-- starting ADVANCE_BY ($n) ------------------------------------");
 
+        LOG("++ before advance: ${state}") if DEBUG;
         $state->advance_by($n);
+        LOG("++ after advance: ${state}") if DEBUG;
 
         foreach my ($i, $unit) ( indexed $state->units ) {
             my @events;
 
-            my $old = $old[$i];
+            LOG("... checking all events from [$i]") if DEBUG;
+            foreach my $bucket ( $wheel[ $i ]->@* ) {
+                next unless @$bucket;
 
-            my @indicies;
-            LOG("old[$i](${old}) | unit(${unit})") if DEBUG;
-            if ( $old == $unit) {
-                # do nothing, no change ...
-                LOG("... equal, so doing nothing") if DEBUG;
-                #@indicies = ($unit);
-            } elsif ($old < $unit) {
-                # grab all the possible affected events
-                LOG("... less than") if DEBUG;
-                @indicies = ($old + 1) .. $unit;
-            } elsif ($old > $unit) {
-                LOG("... greater than") if DEBUG;
-                @indicies = 0 .. $unit;
-            }
+                LOG(">>> found (".(scalar @$bucket).") events wheel[$i][$unit]") if DEBUG;
+                my @keep;
+                while (@$bucket) {
+                    my $timer     = shift @$bucket;
+                    my $end_state = $timer->end_state;
+                    my @end_units = $end_state->units;
 
-            if (@indicies) {
-                LOG("... grabbing all events from (".(join ', ' => @indicies).")") if DEBUG;
-                foreach my $bucket ( $wheel[ $i ]->@[ @indicies ] ) {
-                    LOG(">>> found (".(scalar @$bucket).") events wheel[$i][$unit]") if DEBUG;
-                    while (@$bucket) {
-                        my $timer = shift @$bucket;
+                    if ($end_units[$i] > $unit) {
+                        LOG("no need to move [${end_state}] from ".(join ', ', $end_units[$i], $unit)) if DEBUG;
+                        push @keep => $timer;
+                    } else {
+                        LOG("moving [${end_state}] from ".(join ', ', $end_units[$i], $unit)) if DEBUG;
                         $self->_move_timer( $timer, $i );
                     }
                 }
-
+                @$bucket = @keep;
             }
         }
+
+        LOG("-- ending ADVANCE_BY ($n) --------------------------------------");
     }
 
     method _move_timer ($timer, $level) {
         my $end_state  = $timer->end_state;
         my @units      = $end_state->units;
+
         my $max_level  = $#breakdowns;
         my $next_level = $level;
 
@@ -121,39 +114,44 @@ class VM::Timers::Wheel {
 
     ## -------------------------------------------------------------------------
 
-    method find_next_timer {
+    method calculate_timeout {
         return if $timer_count == 0;
 
         my $n = $#breakdowns;
-        my $timer;
+        my $idx;
     OUTER:
         while ($n >= 0) {
             foreach my ($i, $bucket) (indexed $wheel[$n]->@*) {
                 if (@$bucket) {
-                    #LOG "Found events at wheel[$n]->[$i]" if DEBUG;
-                    $timer = $bucket->[0];
+                    LOG('... got timer '.$bucket->[0]->end_state) if DEBUG;
+                    $idx = $i;
                     last OUTER;
                 }
             }
             $n--;
         }
 
-        return $timer;
+        return unless defined $idx;
+
+        LOG("... found Timer at [$n][$idx] =(".$breakdowns[$n].")=".($breakdowns[$n] * $idx)) if DEBUG;
+
+        return $breakdowns[$n] * $idx;
     }
 
     ## -------------------------------------------------------------------------
 
     method add_timer ($timer) {
-        if ($timer_count == 0) {
-            $state->reset;
-            $clock->start;
-        }
-
         my $end_state = $timer->calculate_end_state( $state );
 
+        LOG("Adding Timer at ${end_state}") if DEBUG;
+
+        my @state = $state->units;
+
         foreach my ($i, $unit) ( indexed $end_state->units ) {
-            if ($unit) {
+            LOG("Checking ${unit} >= ".$state[$i]) if DEBUG;
+            if ($unit && $unit > $state[$i]) {
                 push @{ $wheel[$i]->[ $unit ] } => $timer;
+                LOG("... Added Timer at [$i][$unit] for ${end_state}") if DEBUG;
                 $timer_count++;
                 last;
             }
@@ -178,11 +176,8 @@ class VM::Timers::Wheel {
 
         my @units = $state->units;
 
-        my $next = $self->find_next_timer;
-
         say('-' x 33);
         say '  now: ',$state->to_string;
-        say ' next: ',($next ? $next->end_state->to_string : '~');
         say 'count: ',$timer_count;
         say('-' x 33);
         say '         ', join '.' => 0 .. 9;

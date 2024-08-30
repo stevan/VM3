@@ -14,6 +14,6 @@ class VM::Timers::Timer {
     }
 
     method fire {
-        $event->();
+        $event->($self);
     }
 }
