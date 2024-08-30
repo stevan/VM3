@@ -4,7 +4,7 @@ use v5.40;
 use experimental qw[ class ];
 
 use importer 'Data::Dumper' => qw[ Dumper ];
-use importer 'List::Util'   => qw[ merge ];
+use importer 'List::Util'   => qw[ mesh ];
 
 class VM::Timers::Wheel::State {
     use overload '""' => \&to_string;
@@ -74,7 +74,7 @@ class VM::Timers::Wheel::State {
 
     method equal_to ($s) {
         my $is_equal = true;
-        foreach my ($l, $r) (merge \@units, [ $s->units ]) {
+        foreach my ($l, $r) (mesh \@units, [ $s->units ]) {
             if ($l != $r) {
                 $is_equal = false;
                 last;
