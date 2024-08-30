@@ -14,14 +14,10 @@ class VM::Timers::Wheel::State {
     field @units :reader;
 
     ADJUST {
-        $self->reset;
-    }
-
-    method reset {
         @units = (0) x (scalar @$breakdowns);
     }
 
-    method in_units ( @u ) { @units = @u; $self }
+    method set_state ( @u ) { @units = @u; $self }
 
     ## -------------------------------------------------------------------------
 
@@ -43,31 +39,61 @@ class VM::Timers::Wheel::State {
 
     ## -------------------------------------------------------------------------
 
-    method calculate_future_state ($duration) {
-        my $ms = $duration;
+    method normalize (@args) {
+        #say "start ",join ':' => @args;
+        my $remainder = 0;
+        foreach my $i ( reverse 0 .. $#args ) {
+            #say "checking unit[$i] = ".$args[$i];
 
+            if ($remainder) {
+                #say "... got remainder(${remainder})";
+                $args[$i] += $remainder;
+                #say "updated unit[$i] = ".$args[$i];
+                $remainder = 0;
+            }
+
+            my $u = $args[$i];
+            if ($u >= 10) {
+                #say "unit[$i] is greater than 10";
+                $remainder  = int($u / 10);
+                #say "calculated remainder(${remainder})";
+                $args[$i] = int($u % 10);
+                #say "updated unit[$i] = ".$args[$i];
+            }
+        }
+        #say "end ",join ':' => @args;
+        return VM::Timers::Wheel::State->new(
+            breakdowns => $breakdowns
+        )->set_state(
+            @args
+        );
+    }
+
+    method decompose ($ms) {
         my @decomposed;
-        my @event_time;
+
         my $remainder = $ms;
         foreach my ($i, $size) ( indexed @$breakdowns ) {
             my $unit = int($remainder / $size);
             push @decomposed => $unit;
-            my $sum = $unit + $units[$i];
-            if ($sum < 10) {
-                push @event_time => $sum;
-            } else {
-                my $val = $sum - 10;
-                $event_time[-1]++;
-                push @event_time => $val;
-            }
             $remainder -= ($decomposed[-1] * $size);
         }
 
         return VM::Timers::Wheel::State->new(
             breakdowns => $breakdowns
-        )->in_units(
-            @event_time
+        )->set_state(
+            @decomposed
         );
+    }
+
+    method add_milliseconds ($ms) {
+        my @new = @units;
+        $new[-1] += $ms;
+        return $self->normalize(@new);
+    }
+
+    method calculate_future_state ($duration) {
+        $self->add_milliseconds($duration);
     }
 
     ## -------------------------------------------------------------------------

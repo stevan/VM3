@@ -61,18 +61,17 @@ class VM::Timers::Wheel {
             foreach my $bucket ( $wheel[ $i ]->@* ) {
                 next unless @$bucket;
 
-                LOG(">>> found (".(scalar @$bucket).") events wheel[$i][$unit]") if DEBUG;
+                LOG(">>> found (".(scalar @$bucket).") events wheel[$i]") if DEBUG;
                 my @keep;
                 while (@$bucket) {
                     my $timer     = shift @$bucket;
                     my $end_state = $timer->end_state;
-                    my @end_units = $end_state->units;
 
                     if ($end_units[$i] > $unit) {
-                        LOG("no need to move [${end_state}] from ".(join ', ', $end_units[$i], $unit)) if DEBUG;
+                        LOG("no need to move [${end_state}] from ${unit}") if DEBUG;
                         push @keep => $timer;
                     } else {
-                        LOG("moving [${end_state}] from ".(join ', ', $end_units[$i], $unit)) if DEBUG;
+                        LOG("moving [${end_state}] from ${unit}") if DEBUG;
                         $self->_move_timer( $timer, $i );
                     }
                 }
