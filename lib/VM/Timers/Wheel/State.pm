@@ -7,102 +7,39 @@ use importer 'Data::Dumper' => qw[ Dumper ];
 use importer 'List::Util'   => qw[ mesh ];
 
 class VM::Timers::Wheel::State {
+    use constant DEBUG => $ENV{DEBUG} // 0;
+
     use overload '""' => \&to_string;
+    field $num_gears :param :reader;
 
-    field $breakdowns :param :reader;
+    field $time    :reader =  0;
+    field @gears   :reader = (0) x $num_gears;
+    field @changes :reader = (0) x $num_gears;
 
-    field @units :reader;
+    method advance {
+        $time++;
 
-    ADJUST {
-        @units = (0) x (scalar @$breakdowns);
-    }
+        @changes = (0) x $num_gears;
 
-    method set_state ( @u ) { @units = @u; $self }
-
-    ## -------------------------------------------------------------------------
-
-    method advance_by ($n) {
-        while ($n--) {
-            my $rollover = true;
-            my $i = $#units;
-            while ($rollover) {
-                $units[$i]++;
-                if ($units[$i] == 10) {
-                    $units[$i] = 0;
-                    $i--;
-                } else {
-                    $rollover = false;
-                }
+        my $i = 0;
+        DEBUG && say "i($i) num_gears($num_gears) @ time($time)";
+        while ($i < $num_gears) {
+            DEBUG && say ".. i($i) num_gears($num_gears) @ time($time)";
+            DEBUG && say "gears[$i] = ",$gears[$i];
+            if ($gears[$i] < 9) {
+                $gears[$i]++;
+                DEBUG && say "inc gears[$i] = ",$gears[$i];
+                $changes[$i] = $gears[$i];
+                last;
+            } else {
+                DEBUG && say "... rolled over i($i) to zero @ time($time)";
+                $gears[$i] = 0;
+                $i++;
             }
         }
     }
-
-    ## -------------------------------------------------------------------------
-
-    method normalize (@args) {
-        #say "start ",join ':' => @args;
-        my $remainder = 0;
-        foreach my $i ( reverse 0 .. $#args ) {
-            #say "checking unit[$i] = ".$args[$i];
-
-            if ($remainder) {
-                #say "... got remainder(${remainder})";
-                $args[$i] += $remainder;
-                #say "updated unit[$i] = ".$args[$i];
-                $remainder = 0;
-            }
-
-            my $u = $args[$i];
-            if ($u >= 10) {
-                #say "unit[$i] is greater than 10";
-                $remainder  = int($u / 10);
-                #say "calculated remainder(${remainder})";
-                $args[$i] = int($u % 10);
-                #say "updated unit[$i] = ".$args[$i];
-            }
-        }
-        #say "end ",join ':' => @args;
-        return VM::Timers::Wheel::State->new(
-            breakdowns => $breakdowns
-        )->set_state(
-            @args
-        );
-    }
-
-    method decompose ($ms) {
-        my @decomposed;
-
-        my $remainder = $ms;
-        foreach my ($i, $size) ( indexed @$breakdowns ) {
-            my $unit = int($remainder / $size);
-            push @decomposed => $unit;
-            $remainder -= ($decomposed[-1] * $size);
-        }
-
-        return VM::Timers::Wheel::State->new(
-            breakdowns => $breakdowns
-        )->set_state(
-            @decomposed
-        );
-    }
-
-    method add_milliseconds ($ms) {
-        my @new = @units;
-        $new[-1] += $ms;
-        return $self->normalize(@new);
-    }
-
-    method calculate_future_state ($duration) {
-        $self->add_milliseconds($duration);
-    }
-
-    ## -------------------------------------------------------------------------
-
-    method less_than    ($s) { (join ':' => @units) lt (join ':' => $s->units) }
-    method greater_than ($s) { (join ':' => @units) gt (join ':' => $s->units) }
-    method equal_to     ($s) { (join ':' => @units) eq (join ':' => $s->units) }
 
     method to_string {
-        sprintf 'Time[%s]', join ':' => @units;
+        sprintf 'State[%s](%d)' => (join ':', @gears), $time;
     }
 }
