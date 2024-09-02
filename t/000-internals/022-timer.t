@@ -97,24 +97,30 @@ class Wheel {
                     my $t   = $timer->expiry;
                     my $exp = $depth;
 
-                    my $e1 = (10 ** $exp);
-                    my $e2 = ($e1 / 10);
+                    while ($exp < $depth) {
+                        my $e1 = (10 ** $exp);
+                        my $e2 = ($e1 / 10);
 
-                    if (DEBUG) {
-                        say sprintf "t(%d) (e: %d e-1: %d)", $t, $e1, $e2;
-                        say sprintf "((%d %% %d) - (%d %% %d)) / %d", $t, $e1, $t, $e2, $e2;
-                        say sprintf "((%d) - (%d)) / %d", $t % $e1, $t % $e2, $e2;
-                        say sprintf "%d / %d", ($t % $e1) - ($t % $e2), $e2;
-                        say sprintf "%d", (($t % $e1) - ($t % $e2)) / $e2;
+                        if (DEBUG) {
+                            say sprintf "t(%d) (e: %d e-1: %d)", $t, $e1, $e2;
+                            say sprintf "((%d %% %d) - (%d %% %d)) / %d", $t, $e1, $t, $e2, $e2;
+                            say sprintf "((%d) - (%d)) / %d", $t % $e1, $t % $e2, $e2;
+                            say sprintf "%d / %d", ($t % $e1) - ($t % $e2), $e2;
+                            say sprintf "%d", (($t % $e1) - ($t % $e2)) / $e2;
+                        }
+
+                        my $x = (($t % $e1) - ($t % $e2)) / $e2;
+                        if ($x == 0) {
+                            say "x($x) == 0, so dec depth($depth)";
+                            $depth++;
+                            next;
+                        }
+
+                        my $next_index = (($exp - 1) * 10) + $x;
+                        DEBUG && say "Moving timer($timer) to index($next_index)";
+                        push $wheel[$next_index]->@* => $timer;
+                        last;
                     }
-
-                    my $foo = (($t % $e1) - ($t % $e2)) / $e2;
-                    die $timer if $foo == 0;
-                    my $next_index = (($exp - 1) * 10) + $foo;
-
-                    DEBUG && say "Moving timer($timer) to index($next_index)";
-
-                    push $wheel[$next_index]->@* => $timer;
                 }
             }
         } else {
@@ -204,18 +210,20 @@ my $max = 1000;
 my @expected = map { int(rand($max)) } 0 .. 100;
 my @got;
 
-foreach my $t (@expected) {
+foreach my $t (103) { #@expected) {
     my $x = $t;
     $w->add_timer_at($t, sub { push @got => $x });
 }
+
+$w->advance_by( 90 );
 
 my $i = $max + 10;
 while ($i--) {
     print "\e[2J\e[H";
     $w->advance_by( 1 );
     $w->dump_wheel;
-    #my $x = <>;
-    sleep(0.01);
+    my $x = <>;
+    #sleep(0.01);
 }
 
 
