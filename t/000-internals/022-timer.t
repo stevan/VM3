@@ -108,7 +108,9 @@ class Wheel {
                         say sprintf "%d", (($t % $e1) - ($t % $e2)) / $e2;
                     }
 
-                    my $next_index = (($exp - 1) * 10) + (($t % $e1) - ($t % $e2)) / $e2;
+                    my $foo = (($t % $e1) - ($t % $e2)) / $e2;
+                    die $timer if $foo == 0;
+                    my $next_index = (($exp - 1) * 10) + $foo;
 
                     DEBUG && say "Moving timer($timer) to index($next_index)";
 
