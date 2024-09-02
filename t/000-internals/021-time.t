@@ -8,10 +8,14 @@ use importer 'Data::Dumper' => qw[ Dumper ];
 
 class Timer {
     use overload '""' => \&to_string;
+
     field $timeout :param :reader;
-    field $expiry  :param :reader;
     field $event   :param :reader;
-    method to_string { sprintf 'Timer[to:%d, xp:%d]' => $timeout, $expiry }
+    field $expiry  :param :reader;
+
+    method to_string {
+        sprintf 'Timer[to:%d, xp:%d]' => $timeout, $expiry
+    }
 }
 
 class Wheel {
@@ -23,7 +27,7 @@ class Wheel {
 
     my @high2low = 0 .. ($depth - 1);
     my @low2high = reverse @high2low;
-    my @powers10 = reverse map { 10 ** $_ } 0 .. $depth;
+    my @powers10 = map { 10 ** $_ } 0 .. $depth;
 
     if (DEBUG) {
         LOG("WHEEL CONFIG (");
@@ -57,35 +61,50 @@ class Wheel {
     }
 
     method insert_timer ($timer) {
-        LOG("... inserting timer $timer") if DEBUG;
+        LOG("__ CALCULATING TIMER($timer)") if DEBUG >= 10;
 
         my $t = $timer->expiry;
 
         my $idx;
         foreach my $i ( @high2low ) {
-            LOG(sprintf "t(%d) < powers10[%d + 1]", $t, $i) if DEBUG >= 10;
-            LOG(sprintf "t(%d) < %d", $t, $powers10[ $i + 1 ]) if DEBUG >= 10;
-            next if $t < $powers10[ $i + 1 ];
-            LOG("Calculate Index at i: $i for t: $t") if DEBUG >= 5;
+            LOG(sprintf "t(%d) < powers10[%d + 1]", $t, $i) if DEBUG >= 15;
+            LOG(sprintf "t(%d) < %d", $t, $powers10[ $i + 1 ]) if DEBUG >= 15;
+            next if $t > $powers10[ $i + 1 ];
+            LOG(sprintf ">> calculating index(%d, %d)", $i, $t)   if DEBUG >= 15;
             $idx = $self->calculate_index($i, $t);
             push $wheel[$idx]->@* => $timer;
             last;
         }
 
-        LOG("inserted timer $timer at $idx") if DEBUG;
+        LOG("__ INSERTED TIMER($timer) @ INDEX($idx)") if DEBUG >= 10;
 
         return $timer;
     }
 
-    # ╭──╮
-    # │  │
-    # ├──┤
-    # ╰──╯
+    ## -------------------------------------------------------------------------
+
+    method calculate_time_from_idx ($idx) {
+        LOG("__ CALCULATING TIME @ INDEX $idx") if DEBUG >= 10;
+        my $x1 = int($idx / 10);
+        my $x2 = $powers10[ $depth - $x1 ];
+        my $x3 = $idx % 10;
+        my $t = $x2 * $x3;
+        LOG("INDEX: $idx")           if DEBUG >= 15;
+        LOG("_ = idx / 10 = $x1")    if DEBUG >= 15;
+        LOG("_ = pow($x1) = $x2")    if DEBUG >= 15;
+        LOG("_ = idx % 10 = $x3")    if DEBUG >= 15;
+        LOG("time = $x2 * $x3 = $t") if DEBUG >= 15;
+
+        LOG("__ GOT TIME: $t") if DEBUG >= 10;
+        return $t;
+    }
 
     method calculate_index ($col, $t) {
-        LOG("__ CALCULATING INDEX FOR $t at $col") if DEBUG >= 15;
+        LOG("__ CALCULATING INDEX FOR TIME($t) @ RESOLUTION($col)") if DEBUG >= 10;
+
         my ($e1, $e2) = @powers10[ $col, $col + 1 ];
-        LOG(sprintf "t: %d (%s) => (e: %5d e-1: %5d)",
+
+        LOG(sprintf "t: %d (%s) => (e: %d e-1: %d)",
                     $t, $names[$col], $e1, $e2) if DEBUG >= 15;
         LOG(sprintf "((%d %% %d) - (%d %% %d)) / %d",
                     $t, $e1, $t, $e2, $e2) if DEBUG >= 15;
@@ -95,11 +114,20 @@ class Wheel {
                     ($t % $e1) - ($t % $e2), $e2) if DEBUG >= 15;
         LOG(sprintf "%d",
                     (($t % $e1) - ($t % $e2)) / $e2) if DEBUG >= 15;
+
         my $row = (($t % $e1) - ( $t % $e2 )) / $e2;
         my $idx = ($col * 10) + $row;
-        LOG("__ GOT INDEX: $idx") if DEBUG >= 15;
+
+        LOG("__ GOT INDEX: $idx") if DEBUG >= 10;
         return $idx;
     }
+
+    ## -------------------------------------------------------------------------
+    # ╭──╮
+    # │  │
+    # ├──┤
+    # ╰──╯
+    ## -------------------------------------------------------------------------
 
     method dump_wheel {
         state $hor = '─' x 25;
@@ -107,7 +135,7 @@ class Wheel {
         state $mid = '├─'.$hor.'─┤';
         state $bot = '╰─'.$hor.'─╯';
 
-        state $cell_fmt = "\e[0;9%dm%d\e[0m";
+        state $cell_fmt = "\e[0;4%dm%d\e[0m";
         state $time_fmt = "\e[0;9%dm\e[7m%d\e[0m";
         state $line_fmt = "│ %-25s │";
 
@@ -129,28 +157,49 @@ class Wheel {
                 my $amount = scalar @$bucket;
                 push @line => sprintf(
                     (exists $indicies{$j} ? $time_fmt : $cell_fmt),
-                    ($amount) x 2
+                    (exists $indicies{$j} ? ((4 + $amount), $amount) : (($amount) x 2)),
                 );
             }
             say sprintf $line_fmt, join ' - ', $names[$i], (join ':' => @line);
         }
         say $bot;
+
+        foreach my ($i, $x) (indexed @wheel) {
+            if (my $c = scalar @$x) {
+                say "wheel[$i] = [",(join ', ' => @$x),"]";
+            }
+        }
     }
 }
 
+
+
 my $w = Wheel->new;
 
+$w->add_timer( 10, sub {} );
+
+#$w->add_timer( $w->calculate_time_from_idx(1), sub {} );
+#$w->add_timer( $w->calculate_time_from_idx(12), sub {} );
+#$w->add_timer( $w->calculate_time_from_idx(34), sub {} );
+
 $w->dump_wheel;
 
-$w->advance_by(21);
+
+__END__
+
+
 $w->dump_wheel;
 
-$w->add_timer(   13, sub { say   13 } );
-$w->add_timer(   56, sub { say   56 } );
-$w->add_timer( 1300, sub { say 1300 } );
+#$w->advance_by(21);
+#$w->dump_wheel;
+
+$w->add_timer(     3, sub { say    3 } );
+#$w->add_timer(   13, sub { say   13 } );
+#$w->add_timer(   56, sub { say   56 } );
+#$w->add_timer( 1300, sub { say 1300 } );
 $w->dump_wheel;
 
-$w->advance_by(800);
-$w->dump_wheel;
+#$w->advance_by(800);
+#$w->dump_wheel;
 
 done_testing;

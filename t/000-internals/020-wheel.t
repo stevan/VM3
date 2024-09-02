@@ -150,19 +150,19 @@ class VM::Wheel {
 }
 
 my $w = VM::Wheel->new( depth => 5 );
-$w->add_timer(15, sub {
+$w->add_timer(10, sub {
     warn ">> 15 @ ".$w->state."\n";
 
     $w->add_timer(10, sub { warn ">> 15+10=25 @ ".$w->state."\n" });
     $w->add_timer(13, sub { warn ">> 15+13=28 @ ".$w->state."\n" });
 
 });
-$w->add_timer( 5, sub {
-    warn ">> 5 @ ".$w->state."\n";
-    $w->add_timer(10, sub {
-        warn ">> 5+10=15 @ ".$w->state."\n";
-    });
-});
+#$w->add_timer( 5, sub {
+#    warn ">> 5 @ ".$w->state."\n";
+#    $w->add_timer(10, sub {
+#        warn ">> 5+10=15 @ ".$w->state."\n";
+#    });
+#});
 
 while (1) {
     $w->dump_wheel;
