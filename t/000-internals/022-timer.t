@@ -7,7 +7,7 @@ use Test::More;
 use Test::Differences;
 
 use importer 'Data::Dumper' => qw[ Dumper ];
-use importer 'Time::HiRes'  => qw[ sleep ];
+use importer 'Time::HiRes'  => qw[ sleep time ];
 
 class Timer {
     use overload '""' => \&to_string;
@@ -73,7 +73,7 @@ class Wheel {
             foreach my ($i, $change) (indexed @changes) {
                 if ($change) {
                     my $index = $change + ($i * 10);
-                    say "check index: ",$index;
+                    DEBUG && say "check index: ",$index;
                     $self->check_timers( $index, $i );
                 }
             }
@@ -97,7 +97,7 @@ class Wheel {
                     my $t   = $timer->expiry;
                     my $exp = $depth;
 
-                    while ($exp < $depth) {
+                    while ($exp < DEPTH) {
                         my $e1 = (10 ** $exp);
                         my $e2 = ($e1 / 10);
 
@@ -111,8 +111,8 @@ class Wheel {
 
                         my $x = (($t % $e1) - ($t % $e2)) / $e2;
                         if ($x == 0) {
-                            say "x($x) == 0, so dec depth($depth)";
-                            $depth++;
+                            DEBUG && say "x($x) == 0, so dec exp($exp)";
+                            $exp--;
                             next;
                         }
 
@@ -124,7 +124,7 @@ class Wheel {
                 }
             }
         } else {
-            say "no timers to check ...";
+            DEBUG && say "no timers to check ...";
         }
     }
 
@@ -205,27 +205,45 @@ class Wheel {
 
 my $w = Wheel->new;
 
-my $max = 1000;
+my $max = 9999;
 
-my @expected = map { int(rand($max)) } 0 .. 100;
+my @expected = map { 1+int(rand($max)) } 0 .. 100_000;
 my @got;
 
-foreach my $t (103) { #@expected) {
+{
+my $start = time;
+
+foreach my $t (@expected) {
     my $x = $t;
     $w->add_timer_at($t, sub { push @got => $x });
 }
 
-$w->advance_by( 90 );
-
-my $i = $max + 10;
-while ($i--) {
-    print "\e[2J\e[H";
-    $w->advance_by( 1 );
-    $w->dump_wheel;
-    my $x = <>;
-    #sleep(0.01);
+say "Adding timers took :".(time - $start);
 }
 
+#$w->advance_by( 45 );
 
+#my $i = $max + 1;
+#while ($i--) {
+#    print "\e[2J\e[H";
+#    $w->advance_by( 1 );
+#    $w->dump_wheel;
+#    #my $x = <>;
+#    sleep(0.001);
+#}
+
+{
+    my $start = time;
+    $w->advance_by( $max + 1 );
+    say "Advancing took :".(time - $start);
+}
+
+eq_or_diff(
+    [ @got ],
+    [ sort { $a <=> $b } @expected ],
+    '... got all the events!'
+);
+
+done_testing;
 
 
