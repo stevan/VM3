@@ -3,16 +3,16 @@
 use v5.40;
 use experimental qw[ class ];
 
-use VM::Timers::Timer;
-use VM::Timers::Wheel::State;
+use VM::Kernel::Timers::Timer;
+use VM::Kernel::Timers::Wheel::State;
 
-class VM::Timers::Wheel {
+class VM::Kernel::Timers::Wheel {
     use constant DEBUG => $ENV{DEBUG} // 0;
     use constant DEPTH => 5;
 
     field @wheel = map +[], 1 .. (DEPTH * 10);
 
-    field $state = VM::Timers::Wheel::State->new( num_gears => DEPTH - 1 );
+    field $state = VM::Kernel::Timers::Wheel::State->new( num_gears => DEPTH - 1 );
 
     method advance_by ($n) {
         while ($n) {
@@ -125,7 +125,7 @@ class VM::Timers::Wheel {
     }
 
     method add_timer_at($t, $event) {
-        my $timer = VM::Timers::Timer->new(
+        my $timer = VM::Kernel::Timers::Timer->new(
             expiry => $t,
             event  => $event,
         );

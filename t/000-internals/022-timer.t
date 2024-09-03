@@ -9,9 +9,9 @@ use Test::Differences;
 use importer 'Data::Dumper' => qw[ Dumper ];
 use importer 'Time::HiRes'  => qw[ sleep time ];
 
-use VM::Timers::Wheel;
+use VM::Kernel::Timers::Wheel;
 
-my $w = VM::Timers::Wheel->new;
+my $w = VM::Kernel::Timers::Wheel->new;
 
 my $max = 9999;
 my $amount = $ARGV[0] // $max;

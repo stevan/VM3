@@ -7,13 +7,13 @@ use importer 'List::Util'   => qw[ max ];
 use importer 'Time::HiRes'  => qw[ clock_gettime ];
 use importer 'Carp'         => qw[ confess ];
 
-class VM::Clock::Time {
+class VM::Kernel::Clock::Time {
     use overload '""' => \&to_string;
     field $epoch :param :reader;
     method to_string { sprintf 'Time[%d]' => $epoch }
 }
 
-class VM::Clock {
+class VM::Kernel::Clock {
     use overload '""' => \&to_string;
 
     use const SCALE_BY   => $ENV{CLOCK_SCALE} || 1;
@@ -25,7 +25,7 @@ class VM::Clock {
     field $seconds :reader;
     field $elapsed :reader = 0;
 
-    method get_current_time { VM::Clock::Time->new( epoch => $seconds ) }
+    method get_current_time { VM::Kernel::Clock::Time->new( epoch => $seconds ) }
 
     my sub now {
         state $MONO = Time::HiRes::CLOCK_MONOTONIC();

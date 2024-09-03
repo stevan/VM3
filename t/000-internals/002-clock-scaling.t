@@ -8,15 +8,15 @@ use importer 'List::Util'  => qw[ max ];
 
 use Test::More;
 
-use ok 'VM::Clock';
+use ok 'VM::Kernel::Clock';
 
 sub within_threshold ($got, $start) {
     $got >= $start && $got <= ($start + max(10, ($start * 0.25)))
 }
 
 subtest '... testing clock scaling ()' => sub {
-    my $c = VM::Clock->new;
-    isa_ok($c, 'VM::Clock');
+    my $c = VM::Kernel::Clock->new;
+    isa_ok($c, 'VM::Kernel::Clock');
     $c->start;
     sleep(0.1);
     $c->update;
@@ -24,8 +24,8 @@ subtest '... testing clock scaling ()' => sub {
 };
 
 subtest '... testing clock scaling (0.5)' => sub {
-    my $c = VM::Clock->new( scale_by => 0.5 );
-    isa_ok($c, 'VM::Clock');
+    my $c = VM::Kernel::Clock->new( scale_by => 0.5 );
+    isa_ok($c, 'VM::Kernel::Clock');
     $c->start;
     sleep(0.1);
     $c->update;
@@ -33,8 +33,8 @@ subtest '... testing clock scaling (0.5)' => sub {
 };
 
 subtest '... testing clock scaling (0.3)' => sub {
-    my $c = VM::Clock->new( scale_by => 0.3 );
-    isa_ok($c, 'VM::Clock');
+    my $c = VM::Kernel::Clock->new( scale_by => 0.3 );
+    isa_ok($c, 'VM::Kernel::Clock');
     $c->start;
     sleep(0.1);
     $c->update;
@@ -42,8 +42,8 @@ subtest '... testing clock scaling (0.3)' => sub {
 };
 
 subtest '... testing clock scaling (0.1)' => sub {
-    my $c = VM::Clock->new( scale_by => 0.1 );
-    isa_ok($c, 'VM::Clock');
+    my $c = VM::Kernel::Clock->new( scale_by => 0.1 );
+    isa_ok($c, 'VM::Kernel::Clock');
     $c->start;
     sleep(0.1);
     $c->update;
@@ -51,8 +51,8 @@ subtest '... testing clock scaling (0.1)' => sub {
 };
 
 subtest '... testing clock scaling (0.01)' => sub {
-    my $c = VM::Clock->new( scale_by => 0.01 );
-    isa_ok($c, 'VM::Clock');
+    my $c = VM::Kernel::Clock->new( scale_by => 0.01 );
+    isa_ok($c, 'VM::Kernel::Clock');
     $c->start;
     sleep(0.1);
     $c->update;

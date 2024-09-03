@@ -8,7 +8,7 @@ use importer 'List::Util'  => qw[ max ];
 
 use Test::More;
 
-use ok 'VM::Clock';
+use ok 'VM::Kernel::Clock';
 
 # NOTE:
 # There is some level of drift, which is to be expected when
@@ -27,8 +27,8 @@ sub within_threshold ($got, $start) {
     $got >= $start && $got <= ($start + max(10, ($start * 0.25)))
 }
 
-my $c = VM::Clock->new;
-isa_ok($c, 'VM::Clock');
+my $c = VM::Kernel::Clock->new;
+isa_ok($c, 'VM::Kernel::Clock');
 
 try {
     $c->update;

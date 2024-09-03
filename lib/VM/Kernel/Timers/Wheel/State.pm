@@ -6,7 +6,7 @@ use experimental qw[ class ];
 use importer 'Data::Dumper' => qw[ Dumper ];
 use importer 'List::Util'   => qw[ mesh ];
 
-class VM::Timers::Wheel::State {
+class VM::Kernel::Timers::Wheel::State {
     use constant DEBUG => $ENV{DEBUG} // 0;
 
     use overload '""' => \&to_string;
