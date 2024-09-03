@@ -5,10 +5,10 @@ use experimental qw[ class ];
 
 class VM::Kernel::CPU {
     use constant DEBUG => $ENV{DEBUG} // 0;
-
     use overload '""' => \&to_string;
 
     field $code;
+    field $context;
 
     field $ic :reader = 0;
     field $ci :reader = undef;
@@ -18,5 +18,9 @@ class VM::Kernel::CPU {
         $ic   = 0;
         $ci   = undef;
         $self;
+    }
+
+    method load_context ($ctx) {
+        $context = $ctx;
     }
 }

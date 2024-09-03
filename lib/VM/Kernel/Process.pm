@@ -5,45 +5,37 @@ use experimental qw[ class ];
 
 use importer 'Scalar::Util' => qw[ dualvar ];
 
+use VM::Kernel::CPU::Context;
 use VM::Kernel::Channel;
 
-class VM::Kernel::Process::Status {
-    use constant READY   => dualvar(1, 'READY');   # ready to do work ...
+class VM::Kernel::Process {
+    use constant READY   => dualvar(1,   'READY'); # ready to do work ...
     use constant YIELDED => dualvar(2, 'YIELDED'); # it has yielded control to the system
     use constant STOPPED => dualvar(3, 'STOPPED'); # stopped entirely
-}
 
-class VM::Kernel::Process::Identity {
+    field $entry  :param;
     field $pid    :param :reader;
-    field $parent :param :reader;
-    field $status :param :reader;
-}
+    field $parent :param :reader = undef;
 
-class VM::Kernel::Process::State {
-    field $pc :reader;
-
-    field $fp    :reader;
-    field $sp    :reader = -1;
-    field @stack :reader;
+    field $status  :reader;
+    field $context :reader;
 
     field $chan_in  :reader;
     field $chan_out :reader;
 
-    field $heap :reader; # pointer to Devices.memory
-}
+    ADJUST {
+        $context = VM::Kernel::CPU::Context->new( pc => $entry );
+        $status  = READY;
 
-class VM::Kernel::Process::Devices {
-    field $sid :reader;
-    field $sod :reader;
+        $chan_in  = VM::Kernel::Channel->new;
+        $chan_out = VM::Kernel::Channel->new;
+    }
 
-    field $memory;
-}
+    method ready { $status = READY   }
+    method yield { $status = YIELDED }
+    method stop  { $status = STOPPED }
 
-class VM::Kernel::Process {
-
-    field $ident;
-    field $state;
-    field $devices;
-
-
+    method is_ready   { $status == READY   }
+    method is_yielded { $status == YIELDED }
+    method is_stopped { $status == STOPPED }
 }
