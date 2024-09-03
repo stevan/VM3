@@ -3,6 +3,8 @@
 use v5.40;
 use experimental qw[ class ];
 
+use VM::Kernel::CPU::Context;
+
 class VM::Kernel::CPU {
     use constant DEBUG => $ENV{DEBUG} // 0;
     use overload '""' => \&to_string;
@@ -20,17 +22,20 @@ class VM::Kernel::CPU {
         $self;
     }
 
+    method create_new_context { VM::Kernel::CPU::Context->new }
+
     method load_microcode ($mc)  { $microcode = $mc;  $self }
     method load_code      ($c)   { $code      = $c;   $self }
     method load_context   ($ctx) { $context   = $ctx; $self }
 
-    method next_op { $code->[ $context->pc++ ] }
-
     method execute {
-        $ci = $context->pc;
-        return if $ci < scalar @$code;
-        my $opcode = $self->next_op;
-        $microcode[ $opcode ]->( $self );
+        return if $context->pc > $#{$code};
+        #warn $context->pc;
+        my $opcode = $code->[ $context->pc++ ];
+        $ci = $opcode->instruction;
+        #warn $context->pc;
+        #warn $opcode;
+        $microcode->[ $opcode->instruction ]->microcode->( $opcode, $context );
         return ++$ic;
     }
 }

@@ -14,19 +14,23 @@ class VM::Kernel::CPU::Context {
     method fp :lvalue { $fp }
     method sp :lvalue { $sp }
 
-    method push ($v)     { $stack[++$sp] = $v }
-    method pop           { $stack[$sp--]      }
-    method peek          { $stack[$sp]        }
+    method push  ($v) { push @stack => $v }
+    method pop        { pop @stack        }
+    method peek       { $stack[-1]        }
 
     method get  ($i)     { $stack[$i]         }
     method set  ($i, $v) { $stack[$i] = $v    }
 
     method dump {
-        +{
-            pc    => $pc,
-            fp    => $fp,
-            sp    => $sp,
-            stack => \@stack
+        say sprintf ' pc    : %04d' => $pc;
+        say sprintf ' fp    : %04d' => $fp;
+        say sprintf ' sp    : %04d' => $sp;
+        if (@stack) {
+            say ' stack : [';
+            say join ",\n" => map "    ${_}", @stack;
+            say ' ]';
+        } else {
+            say ' stack : []';
         }
     }
 }

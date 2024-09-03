@@ -61,6 +61,12 @@ package VM::Instructions::Values {
         field $tag :param :reader(value);
     }
 
+    # this is just a enum from the set of signals
+    # available via the instruction set
+    class VM::Instructions::Values::SIGNAL :isa(VM::Instructions::Values::Value) {
+        field $signal :param :reader(value);
+    }
+
     # this is really a compound type, but can be treated
     # as a single value
     class VM::Instructions::Values::STRING :isa(VM::Instructions::Values::Value) {
