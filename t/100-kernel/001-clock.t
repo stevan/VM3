@@ -30,15 +30,6 @@ sub within_threshold ($got, $start) {
 my $c = VM::Kernel::Clock->new;
 isa_ok($c, 'VM::Kernel::Clock');
 
-try {
-    $c->update;
-    fail('... we did not get the expected exception');
-} catch ($e) {
-    like($e, qr/^Clock must be started before updating/, '... we got the expected exception');
-}
-
-$c->start;
-
 my $e;
 $e = $c->update->elapsed;
 is($e, 0, "... elapsed is 0 ($e)");

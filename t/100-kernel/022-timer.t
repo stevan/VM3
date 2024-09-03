@@ -9,9 +9,10 @@ use Test::Differences;
 use importer 'Data::Dumper' => qw[ Dumper ];
 use importer 'Time::HiRes'  => qw[ sleep time ];
 
-use VM::Kernel::Timers::Wheel;
+use VM::Kernel::Timer;
+use VM::Kernel::Timer::Wheel;
 
-my $w = VM::Kernel::Timers::Wheel->new;
+my $w = VM::Kernel::Timer::Wheel->new;
 
 my $max = 9999;
 my $amount = $ARGV[0] // $max;
@@ -26,7 +27,10 @@ my $start = time;
 
 foreach my $t (@expected) {
     my $x = $t;
-    $w->add_timer_at($t, sub { push @got => $x });
+    $w->add_timer(VM::Kernel::Timer->new(
+        expiry => $t,
+        event  => sub { push @got => $x }
+    ));
 }
 
 #diag "Adding timers took :".(time - $start);

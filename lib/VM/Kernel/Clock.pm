@@ -7,12 +7,6 @@ use importer 'List::Util'   => qw[ max ];
 use importer 'Time::HiRes'  => qw[ clock_gettime ];
 use importer 'Carp'         => qw[ confess ];
 
-class VM::Kernel::Clock::Time {
-    use overload '""' => \&to_string;
-    field $epoch :param :reader;
-    method to_string { sprintf 'Time[%d]' => $epoch }
-}
-
 class VM::Kernel::Clock {
     use overload '""' => \&to_string;
 
@@ -22,32 +16,31 @@ class VM::Kernel::Clock {
 
     field $scale_by :param :reader = SCALE_BY;
 
-    field $seconds :reader;
-    field $elapsed :reader = 0;
-
-    method get_current_time { VM::Kernel::Clock::Time->new( epoch => $seconds ) }
+    field $epoch   :reader;
+    field $elapsed :reader;
 
     my sub now {
         state $MONO = Time::HiRes::CLOCK_MONOTONIC();
         return int(((clock_gettime($MONO) * RESOLUTION) * PRECISION));
     }
 
-    method start { $seconds = now() }
-    method stop  { $seconds = undef }
+    ADJUST {
+        $epoch   = now();
+        $elapsed = 0;
+    }
 
-    method is_started {   defined $seconds }
-    method is_stopped { ! defined $seconds }
+    method calculate_expiry_time ($timeout) {
+        $epoch + $timeout;
+    }
 
     method update {
-        confess 'Clock must be started before updating'
-            if not defined $seconds;
         my $now  = now();
-        $elapsed = max(0, (($now - $seconds) * $scale_by));
-        $seconds = $now;
+        $elapsed = max(0, (($now - $epoch) * $scale_by));
+        $epoch   = $now;
         $self;
     }
 
     method to_string {
-        sprintf 'Clock[%d/%d]' => $seconds, $elapsed;
+        sprintf 'Clock[%d/%d]' => $epoch, $elapsed;
     }
 }

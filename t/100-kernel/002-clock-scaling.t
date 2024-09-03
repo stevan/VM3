@@ -17,7 +17,6 @@ sub within_threshold ($got, $start) {
 subtest '... testing clock scaling ()' => sub {
     my $c = VM::Kernel::Clock->new;
     isa_ok($c, 'VM::Kernel::Clock');
-    $c->start;
     sleep(0.1);
     $c->update;
     ok(within_threshold($c->elapsed, 100), "... got the expected elapsed (100) ($c)");
@@ -26,7 +25,6 @@ subtest '... testing clock scaling ()' => sub {
 subtest '... testing clock scaling (0.5)' => sub {
     my $c = VM::Kernel::Clock->new( scale_by => 0.5 );
     isa_ok($c, 'VM::Kernel::Clock');
-    $c->start;
     sleep(0.1);
     $c->update;
     ok(within_threshold($c->elapsed, 50), "... got the expected elapsed (50) ($c)");
@@ -35,7 +33,6 @@ subtest '... testing clock scaling (0.5)' => sub {
 subtest '... testing clock scaling (0.3)' => sub {
     my $c = VM::Kernel::Clock->new( scale_by => 0.3 );
     isa_ok($c, 'VM::Kernel::Clock');
-    $c->start;
     sleep(0.1);
     $c->update;
     ok(within_threshold($c->elapsed, 30), "... got the expected elapsed (30) ($c)");
@@ -44,7 +41,6 @@ subtest '... testing clock scaling (0.3)' => sub {
 subtest '... testing clock scaling (0.1)' => sub {
     my $c = VM::Kernel::Clock->new( scale_by => 0.1 );
     isa_ok($c, 'VM::Kernel::Clock');
-    $c->start;
     sleep(0.1);
     $c->update;
     ok(within_threshold($c->elapsed, 10), "... got the expected elapsed (10) ($c)");
@@ -53,7 +49,6 @@ subtest '... testing clock scaling (0.1)' => sub {
 subtest '... testing clock scaling (0.01)' => sub {
     my $c = VM::Kernel::Clock->new( scale_by => 0.01 );
     isa_ok($c, 'VM::Kernel::Clock');
-    $c->start;
     sleep(0.1);
     $c->update;
     ok(within_threshold($c->elapsed, 1), "... got the expected elapsed (1) ($c)");

@@ -5,6 +5,8 @@ use experimental qw[ class ];
 
 use importer 'Scalar::Util' => qw[ dualvar ];
 
+use VM::Kernel::Channel;
+
 class VM::Kernel::Process::Status {
     use constant READY   => dualvar(1, 'READY');   # ready to do work ...
     use constant YIELDED => dualvar(2, 'YIELDED'); # it has yielded control to the system
