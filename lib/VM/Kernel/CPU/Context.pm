@@ -4,9 +4,9 @@ use v5.40;
 use experimental qw[ class ];
 
 class VM::Kernel::CPU::Context {
-    field $pc :param;
+    field $pc :param = 0;
 
-    field $fp;
+    field $fp = 0;
     field $sp = -1;
     field @stack :reader;
 
@@ -20,4 +20,13 @@ class VM::Kernel::CPU::Context {
 
     method get  ($i)     { $stack[$i]         }
     method set  ($i, $v) { $stack[$i] = $v    }
+
+    method dump {
+        +{
+            pc    => $pc,
+            fp    => $fp,
+            sp    => $sp,
+            stack => \@stack
+        }
+    }
 }
