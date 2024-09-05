@@ -26,7 +26,7 @@ class VM::Kernel::CPU::Context {
         say sprintf ' sp    : %04d' => $sp;
         if (@stack) {
             say ' stack : [';
-            say join ",\n" => map "    ${_}", @stack;
+            say join ",\n" => map "    ${_}", @stack[ 0 .. $sp ];
             say ' ]';
         } else {
             say ' stack : []';

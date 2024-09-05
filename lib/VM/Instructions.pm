@@ -23,7 +23,9 @@ package VM::Instructions {
 
             ADD_INT
 
-
+            LOAD_ARG
+            CALL
+            RETURN
         );
 
         foreach my ($id, $name) (indexed @INSTRUCTIONS) {
@@ -76,4 +78,40 @@ package VM::Instructions {
             )
         );
     };
+
+    # --------------------------------------------------------------------------
+    # Function Calls
+    # --------------------------------------------------------------------------
+
+    set_microcode_for LOAD_ARG, sub ($opcode, $ctx) {
+        my $offset = $opcode->operand1;
+        $ctx->push( $ctx->get( ($ctx->fp - 3) - $offset ) );
+    };
+
+    set_microcode_for CALL, sub ($opcode, $ctx) {
+        my $addr = $opcode->operand1; # func address to go to
+        my $argc = $opcode->operand2; # number of args the function has ...
+        # stash the context ...
+        $ctx->push($argc);
+        $ctx->push($ctx->fp);
+        $ctx->push($ctx->pc);
+
+        # set the new context ...
+        $ctx->fp = $ctx->sp;     # set the new frame pointer
+        $ctx->pc = $addr->value; # and the program counter to the func addr
+    };
+
+    set_microcode_for RETURN, sub ($opcode, $ctx) {
+        my $return_val = $ctx->pop;  # pop the return value from the stack
+
+        $ctx->sp = $ctx->fp;          # restore stack pointer
+        $ctx->pc = $ctx->pop;         # get the stashed program counter
+        $ctx->fp = $ctx->pop;         # get the stashed program frame pointer
+
+        my $argc = $ctx->pop;         # get the number of args
+        $ctx->sp = $ctx->sp - $argc ; # decrement stack pointer by num args
+
+        $ctx->push($return_val); # push the return value onto the stack
+    };
+
 }
