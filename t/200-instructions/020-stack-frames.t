@@ -67,9 +67,7 @@ $cpu->load_microcode( \@VM::Instructions::MICROCODE );
 $ld->load($cpu, $ctx, $exe);
 
 while ($cpu->execute) {
-    say "Current Instruction: ".$cpu->ci;
-    $dbg->dump($ctx);
-    say '-' x 80;
+    $dbg->dump($cpu, $ctx);
 }
 
 
