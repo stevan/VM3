@@ -12,6 +12,8 @@ use VM::Loader;
 use VM::Kernel::CPU;
 use VM::Instructions;
 
+use VM::Debugger::CPUContext;
+
 
 my $exe = VM::Loader::Format->new(
     entry => 8,
@@ -54,6 +56,8 @@ my $exe = VM::Loader::Format->new(
     ]
 );
 
+my $dbg = VM::Debugger::CPUContext->new;
+
 my $ld  = VM::Loader->new;
 my $cpu = VM::Kernel::CPU->new;
 my $ctx = VM::Kernel::CPU::Context->new;
@@ -63,8 +67,8 @@ $cpu->load_microcode( \@VM::Instructions::MICROCODE );
 $ld->load($cpu, $ctx, $exe);
 
 while ($cpu->execute) {
-    warn "Current Instruction: ".$cpu->ci;
-    $ctx->dump;
+    say "Current Instruction: ".$cpu->ci;
+    $dbg->dump($ctx);
     say '-' x 80;
 }
 

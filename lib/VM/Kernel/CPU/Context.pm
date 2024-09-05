@@ -50,37 +50,4 @@ class VM::Kernel::CPU::Context {
 
     method get  ($i)     { $stack[$i]         }
     method set  ($i, $v) { $stack[$i] = $v    }
-
-    method dump {
-        say sprintf ' pc     : %04d' => $pc;
-        if (@frames) {
-            say ' frames : [';
-            say join "\n" => map "    ${_}", @frames;
-            say ' ]';
-        } else {
-            say ' frames : []';
-        }
-        if (@stack) {
-            say ' stack  : [';
-            if (@frames) {
-                my $idx = 0;
-                foreach my $frame (@frames) {
-                    my $arg_top = $idx + $frame->argc;
-                    #warn "idx: $idx arg_top: $arg_top\n";
-                    say join "\n" => map "    ${_}", @stack[ $idx .. ($arg_top - 1) ];
-                    $idx = $arg_top;
-                    say sprintf '    ---- call: %s' => $frame->address;
-                }
-                #warn "ended idx: $idx sp: $sp\n";
-                if ($idx <= $#stack) {
-                    say join "\n" => map "    ${_}", @stack[ $idx .. $#stack ];
-                }
-            } else {
-                say join "\n" => map "    ${_}", @stack;
-            }
-            say ' ]';
-        } else {
-            say ' stack  : []';
-        }
-    }
 }
