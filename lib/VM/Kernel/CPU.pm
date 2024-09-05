@@ -1,4 +1,3 @@
-#!perl
 
 use v5.40;
 use experimental qw[ class ];
@@ -21,8 +20,6 @@ class VM::Kernel::CPU {
         $ci = undef;
         $self;
     }
-
-    method create_new_context { VM::Kernel::CPU::Context->new }
 
     method load_microcode ($mc)  { $microcode = $mc;  $self }
     method load_code      ($c)   { $code      = $c;   $self }

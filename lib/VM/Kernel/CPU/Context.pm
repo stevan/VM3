@@ -1,4 +1,3 @@
-#!perl
 
 use v5.40;
 use experimental qw[ class ];
@@ -14,9 +13,9 @@ class VM::Kernel::CPU::Context {
     method fp :lvalue { $fp }
     method sp :lvalue { $sp }
 
-    method push  ($v) { push @stack => $v }
-    method pop        { pop @stack        }
-    method peek       { $stack[-1]        }
+    method push ($v) { $stack[++$sp] = $v }
+    method pop       { $stack[$sp--]      }
+    method peek      { $stack[$sp]        }
 
     method get  ($i)     { $stack[$i]         }
     method set  ($i, $v) { $stack[$i] = $v    }

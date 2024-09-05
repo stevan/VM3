@@ -1,10 +1,10 @@
-#!perl
 
 use v5.40;
 use experimental qw[ builtin ];
 use builtin      qw[ export_lexically ];
 
 use importer 'Scalar::Util' => qw[ dualvar ];
+use importer 'Sub::Util'    => qw[ set_subname ];
 
 use VM::Instructions::Microcode;
 use VM::Instructions::Opcode;
@@ -22,6 +22,8 @@ package VM::Instructions {
             DUP
 
             ADD_INT
+
+
         );
 
         foreach my ($id, $name) (indexed @INSTRUCTIONS) {
@@ -34,7 +36,7 @@ package VM::Instructions {
     my sub set_microcode_for ($instr, $mc) {
         $MICROCODE[$instr] = VM::Instructions::Microcode->new(
             instruction => $instr,
-            microcode   => $mc
+            microcode   => set_subname( "$instr", $mc ),
         )
     }
 
@@ -74,5 +76,4 @@ package VM::Instructions {
             )
         );
     };
-
 }

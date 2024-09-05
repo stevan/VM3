@@ -19,7 +19,7 @@ my @values = (
     VM::Instructions::Values::FLOAT->new( float => 2.5 ),
     VM::Instructions::Values::ADDRESS->new( address => 1234 ),
     VM::Instructions::Values::TAG->new( tag => 12 ),
-    VM::Instructions::Values::SIGNAL->new( tag => 1 ),
+    VM::Instructions::Values::SIGNAL->new( signal => 1 ),
     VM::Instructions::Values::PROCESS->new( process => $PROCESS )
 );
 
