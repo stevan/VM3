@@ -29,18 +29,6 @@ subtest '... manipuating pointers and counters' => sub {
         is($ctx->pc, 10, '... pc is the expected value (assign)');
     };
 
-    subtest '... manipulating the stack pointer as lvalue' => sub {
-        $ctx->sp++;
-        is($ctx->sp,    0, '... sp is the expected value');
-        is($ctx->sp++,  0, '... sp is the expected value (post-inc)');
-        is($ctx->sp,    1, '... sp is the expected value');
-        is(++$ctx->sp,  2, '... sp is the expected value (pre-inc)');
-        is($ctx->sp,    2, '... sp is the expected value');
-
-        $ctx->sp = 10;
-        is($ctx->sp, 10, '... sp is the expected value (assign)');
-    };
-
 };
 
 subtest '... manipuating the stack' => sub {

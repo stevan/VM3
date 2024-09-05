@@ -91,22 +91,13 @@ package VM::Instructions {
     set_microcode_for CALL, sub ($opcode, $ctx) {
         my $addr = $opcode->operand1; # func address to go to
         my $argc = $opcode->operand2; # number of args the function has ...
-
-        $ctx->push_stack_frame( $addr->value, $argc );
+        $ctx->push_stack_frame( $addr->value, $argc ); # push new stack frame
     };
 
     set_microcode_for RETURN, sub ($opcode, $ctx) {
         my $return_val = $ctx->pop;  # pop the return value from the stack
-
-        my $frame = $ctx->pop_stack_frame;
-
-        $ctx->sp = $frame->sp;          # restore stack pointer
-        $ctx->pc = $frame->return;      # get the stashed program counter
-
-        my $argc = $frame->argc;        # get the number of args
-        $ctx->sp = $ctx->sp - $argc;    # decrement stack pointer by num args
-
-        $ctx->push($return_val); # push the return value onto the stack
+        $ctx->pop_stack_frame;       # pop the stack frame
+        $ctx->push($return_val);     # push the return value onto the stack
     };
 
 }

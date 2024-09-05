@@ -17,58 +17,54 @@ class VM::Kernel::CPU::Context::StackFrame {
 class VM::Kernel::CPU::Context {
     field $pc :param = 0;
 
-    field $fp = -1;
-    field $sp = -1;
-
     field @stack  :reader;
     field @frames :reader;
 
     method pc :lvalue { $pc }
-    method sp :lvalue { $sp }
-    method fp :lvalue { $fp }
 
-    method current_stack_frame { $frames[$fp] }
+    method sp { scalar @stack  }
+    method fp { scalar @frames }
+
+    method current_stack_frame { $frames[-1] }
 
     method push_stack_frame ($address, $argc) {
-        $pc = $address;
-        $frames[++$fp] = VM::Kernel::CPU::Context::StackFrame->new(
+        push @frames => VM::Kernel::CPU::Context::StackFrame->new(
             address => $address,
             argc    => $argc,
-            sp      => $sp,
+            sp      => (scalar @stack),
             return  => $pc,
         );
+        $pc = $address;
     }
     method pop_stack_frame     {
-        my $frame = $frames[$fp];
-        $sp = $frame->sp;          # restore stack pointer
-        $pc = $frame->return;      # get the stashed program counter
-        $sp = $sp - $frame->argc;  # decrement stack pointer by num args
-        $fp--;
+        my $frame = pop @frames;
+        # restore stack pointer and free the args
+        splice @stack, ($frame->sp - $frame->argc);
+        # and go to the return address
+        $pc = $frame->return;
     }
 
-    method push ($v) { $stack[++$sp] = $v }
-    method pop       { $stack[$sp--]      }
-    method peek      { $stack[$sp]        }
+    method push ($v) { push @stack => $v }
+    method pop       { pop @stack }
+    method peek      { $stack[-1] }
 
     method get  ($i)     { $stack[$i]         }
     method set  ($i, $v) { $stack[$i] = $v    }
 
     method dump {
         say sprintf ' pc     : %04d' => $pc;
-        say sprintf ' fp     : %04d' => $fp;
-        say sprintf ' sp     : %04d' => $sp;
-        if ($fp >= 0) {
+        if (@frames) {
             say ' frames : [';
-            say join "\n" => map "    ${_}", @frames[ 0 .. $fp ];
+            say join "\n" => map "    ${_}", @frames;
             say ' ]';
         } else {
             say ' frames : []';
         }
-        if ($sp >= 0) {
+        if (@stack) {
             say ' stack  : [';
-            if ($fp >= 0) {
+            if (@frames) {
                 my $idx = 0;
-                foreach my $frame (@frames[ 0 .. $fp ]) {
+                foreach my $frame (@frames) {
                     my $arg_top = $idx + $frame->argc;
                     #warn "idx: $idx arg_top: $arg_top\n";
                     say join "\n" => map "    ${_}", @stack[ $idx .. ($arg_top - 1) ];
@@ -76,11 +72,11 @@ class VM::Kernel::CPU::Context {
                     say sprintf '    ---- call: %s' => $frame->address;
                 }
                 #warn "ended idx: $idx sp: $sp\n";
-                if ($idx <= $sp) {
-                    say join "\n" => map "    ${_}", @stack[ $idx .. $sp ];
+                if ($idx <= $#stack) {
+                    say join "\n" => map "    ${_}", @stack[ $idx .. $#stack ];
                 }
             } else {
-                say join "\n" => map "    ${_}", @stack[ 0 .. $sp ];
+                say join "\n" => map "    ${_}", @stack;
             }
             say ' ]';
         } else {
