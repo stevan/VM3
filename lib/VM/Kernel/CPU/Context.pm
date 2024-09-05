@@ -27,7 +27,10 @@ class VM::Kernel::CPU::Context {
     method sp :lvalue { $sp }
     method fp :lvalue { $fp }
 
+    method current_stack_frame { $frames[$fp] }
+
     method push_stack_frame ($address, $argc) {
+        $pc = $address;
         $frames[++$fp] = VM::Kernel::CPU::Context::StackFrame->new(
             address => $address,
             argc    => $argc,
@@ -35,8 +38,13 @@ class VM::Kernel::CPU::Context {
             return  => $pc,
         );
     }
-    method pop_stack_frame     { $frames[$fp--] }
-    method current_stack_frame { $frames[$fp]   }
+    method pop_stack_frame     {
+        my $frame = $frames[$fp];
+        $sp = $frame->sp;          # restore stack pointer
+        $pc = $frame->return;      # get the stashed program counter
+        $sp = $sp - $frame->argc;  # decrement stack pointer by num args
+        $fp--;
+    }
 
     method push ($v) { $stack[++$sp] = $v }
     method pop       { $stack[$sp--]      }

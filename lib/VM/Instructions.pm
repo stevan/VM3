@@ -93,7 +93,6 @@ package VM::Instructions {
         my $argc = $opcode->operand2; # number of args the function has ...
 
         $ctx->push_stack_frame( $addr->value, $argc );
-        $ctx->pc = $addr->value; # and the program counter to the func addr
     };
 
     set_microcode_for RETURN, sub ($opcode, $ctx) {
