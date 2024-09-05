@@ -8,31 +8,19 @@ class VM::Kernel::CPU {
     use constant DEBUG => $ENV{DEBUG} // 0;
     use overload '""' => \&to_string;
 
-    field $code      :reader;
-    field $microcode :reader;
-    field $context   :reader;
+    field $microcode :param :reader;
 
     field $ic :reader = 0;
     field $ci :reader = undef;
 
-    method reset {
-        $ic = 0;
-        $ci = undef;
-        $self;
-    }
-
-    method load_microcode ($mc)  { $microcode = $mc;  $self }
-    method load_code      ($c)   { $code      = $c;   $self }
-    method load_context   ($ctx) { $context   = $ctx; $self }
-
-    method execute {
+    method execute ($code, $context) {
         return if $context->pc > $#{$code};
         #warn $context->pc;
         my $opcode = $code->[ $context->pc++ ];
         $ci = $opcode->instruction;
         #warn $context->pc;
         #warn $opcode;
-        $microcode->[ $opcode->instruction ]->microcode->( $opcode, $context );
+        $microcode->[ $ci ]->microcode->( $opcode, $context );
         return ++$ic;
     }
 }

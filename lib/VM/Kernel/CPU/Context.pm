@@ -22,8 +22,8 @@ class VM::Kernel::CPU::Context {
 
     method pc :lvalue { $pc }
 
-    method sp { scalar @stack  }
-    method fp { scalar @frames }
+    method sp { $#stack  }
+    method fp { $#frames }
 
     method current_stack_frame { $frames[-1] }
 

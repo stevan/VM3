@@ -22,6 +22,8 @@ package VM::Instructions {
             DUP
 
             ADD_INT
+            INC_INT
+            DEC_INT
 
             LOAD_ARG
             CALL
@@ -75,6 +77,24 @@ package VM::Instructions {
         $ctx->push(
             VM::Instructions::Values::INT->new(
                 int => $l->value + $r->value
+            )
+        );
+    };
+
+    set_microcode_for INC_INT, sub ($opcode, $ctx) {
+        my $int = $ctx->pop;
+        $ctx->push(
+            VM::Instructions::Values::INT->new(
+                int => $int->value + 1
+            )
+        );
+    };
+
+    set_microcode_for DEC_INT, sub ($opcode, $ctx) {
+        my $int = $ctx->pop;
+        $ctx->push(
+            VM::Instructions::Values::INT->new(
+                int => $int->value - 1
             )
         );
     };
