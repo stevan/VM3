@@ -12,10 +12,24 @@ use VM::Loader;
 use VM::Kernel::CPU;
 use VM::Instructions;
 
+
 my $exe = VM::Loader::Format->new(
-    entry => 4,
+    entry => 8,
     code  => [
-    # adder = 0
+    # doubler = 0
+        VM::Instructions::Opcode->new(
+            instruction => VM::Instructions->LOAD_ARG,
+            operand1    => 1,
+        ),
+        VM::Instructions::Opcode->new( instruction => VM::Instructions->DUP ),
+        VM::Instructions::Opcode->new(
+            instruction => VM::Instructions->CALL,
+            operand1    => VM::Instructions::Values::ADDRESS->new( address => 4 ),
+            operand2    => 2,
+        ),
+        VM::Instructions::Opcode->new( instruction => VM::Instructions->RETURN ),
+
+    # adder = 4
         VM::Instructions::Opcode->new(
             instruction => VM::Instructions->LOAD_ARG,
             operand1    => 1,
@@ -27,28 +41,15 @@ my $exe = VM::Loader::Format->new(
         VM::Instructions::Opcode->new( instruction => VM::Instructions->ADD_INT ),
         VM::Instructions::Opcode->new( instruction => VM::Instructions->RETURN ),
 
-    # main = 4
+    # main = 8
         VM::Instructions::Opcode->new(
             instruction => VM::Instructions->PUSH,
             operand1    => VM::Instructions::Values::INT->new( int => 10 ),
         ),
         VM::Instructions::Opcode->new(
-            instruction => VM::Instructions->PUSH,
-            operand1    => VM::Instructions::Values::INT->new( int => 20 ),
-        ),
-        VM::Instructions::Opcode->new(
             instruction => VM::Instructions->CALL,
             operand1    => VM::Instructions::Values::ADDRESS->new( address => 0 ),
-            operand2    => 2,
-        ),
-        VM::Instructions::Opcode->new(
-            instruction => VM::Instructions->PUSH,
-            operand1    => VM::Instructions::Values::INT->new( int => 30 ),
-        ),
-        VM::Instructions::Opcode->new(
-            instruction => VM::Instructions->CALL,
-            operand1    => VM::Instructions::Values::ADDRESS->new( address => 0 ),
-            operand2    => 2,
+            operand2    => 1,
         ),
     ]
 );

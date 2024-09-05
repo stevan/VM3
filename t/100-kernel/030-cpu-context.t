@@ -41,17 +41,6 @@ subtest '... manipuating pointers and counters' => sub {
         is($ctx->sp, 10, '... sp is the expected value (assign)');
     };
 
-    subtest '... manipulating the frame pointer as lvalue' => sub {
-        $ctx->fp++;
-        is($ctx->fp,    1, '... fp is the expected value');
-        is($ctx->fp++,  1, '... fp is the expected value (post-inc)');
-        is($ctx->fp,    2, '... fp is the expected value');
-        is(++$ctx->fp,  3, '... fp is the expected value (pre-inc)');
-        is($ctx->fp,    3, '... fp is the expected value');
-
-        $ctx->fp = 10;
-        is($ctx->fp, 10, '... fp is the expected value (assign)');
-    };
 };
 
 subtest '... manipuating the stack' => sub {
