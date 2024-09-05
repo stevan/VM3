@@ -41,6 +41,15 @@ my $exe = VM::Loader::Format->new(
             operand1    => VM::Instructions::Values::ADDRESS->new( address => 0 ),
             operand2    => 2,
         ),
+        VM::Instructions::Opcode->new(
+            instruction => VM::Instructions->PUSH,
+            operand1    => VM::Instructions::Values::INT->new( int => 30 ),
+        ),
+        VM::Instructions::Opcode->new(
+            instruction => VM::Instructions->CALL,
+            operand1    => VM::Instructions::Values::ADDRESS->new( address => 0 ),
+            operand2    => 2,
+        ),
     ]
 );
 
