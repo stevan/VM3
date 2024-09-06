@@ -30,6 +30,9 @@ class VM::Debugger::CPUContext {
                     #warn "idx: $idx arg_top: $arg_top\n";
                     say $indent,'│ ',join "\n${indent}│ " => map "  ${_}", @stack[ $idx .. ($arg_top - 1) ];
                     say $indent,sprintf "│ >> call(%s)" => $frame->address;
+                    if (my @locals = $frame->locals) {
+                        say $indent,sprintf "│    ╰─locals(%s)" => join ', ' => map $_->to_string, @locals;
+                    }
                     $idx = $arg_top;
                 }
                 #warn "ended idx: $idx sp: $sp\n";

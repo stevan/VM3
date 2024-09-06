@@ -9,26 +9,17 @@ use Test::More;
 use Test::Differences;
 
 use VM::Kernel::CPU;
-
 use VM::Instructions;
 
+use VM::Assembly::SimpleOpcodeBuilder;
 use VM::Debugger::CPUContext;
 
 my $code = [
-    VM::Instructions::Opcode->new(
-        instruction => VM::Instructions->PUSH,
-        operand1    => VM::Instructions::Values::INT->new( int => 10 ),
-    ),
-    VM::Instructions::Opcode->new(
-        instruction => VM::Instructions->PUSH,
-        operand1    => VM::Instructions::Values::INT->new( int => 20 ),
-    ),
-    VM::Instructions::Opcode->new( instruction => VM::Instructions->ADD_INT ),
-    VM::Instructions::Opcode->new(
-        instruction => VM::Instructions->PUSH,
-        operand1    => VM::Instructions::Values::INT->new( int => 30 ),
-    ),
-    VM::Instructions::Opcode->new( instruction => VM::Instructions->ADD_INT ),
+    op(PUSH, i(10)),
+    op(PUSH, i(20)),
+    op(ADD_INT),
+    op(PUSH, i(30)),
+    op(ADD_INT),
 ];
 
 my $dbg = VM::Debugger::CPUContext->new;

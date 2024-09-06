@@ -14,28 +14,27 @@ use VM::Instructions;
 use VM::Assembly::SimpleOpcodeBuilder;
 use VM::Debugger::CPUContext;
 
-
 my $code = [
-# doubler = 0
+# foo = 0
     op(LOAD_ARG, 1),
+    op(STORE_LOCAL, 0),
+    op(LOAD_LOCAL, 0),
     op(DUP),
-    op(CALL, addr(4), 2),
-    op(RETURN),
-
-# adder = 4
-    op(LOAD_ARG, 1),
-    op(LOAD_ARG, 0),
+    op(ADD_INT),
+    op(STORE_LOCAL, 1),
+    op(LOAD_LOCAL, 0),
+    op(LOAD_LOCAL, 1),
     op(ADD_INT),
     op(RETURN),
 
-# main = 8
+# main = 10
     op(PUSH, i(10)),
     op(CALL, addr(0), 1),
     op(PUSH, void),
     op(RETURN),
 
 # ... = 12
-    op(CALL, addr(8), 0),
+    op(CALL, addr(10), 0),
 ];
 
 my $dbg = VM::Debugger::CPUContext->new;
@@ -43,7 +42,7 @@ my $dbg = VM::Debugger::CPUContext->new;
 my $cpu = VM::Kernel::CPU->new( microcode => \@VM::Instructions::MICROCODE );
 my $ctx = VM::Kernel::CPU::Context->new;
 
-$ctx->pc = 12;
+$ctx->pc = 14;
 
 while ($cpu->execute($code, $ctx)) {
     $dbg->dump($cpu, $ctx);

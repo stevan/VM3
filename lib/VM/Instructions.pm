@@ -25,6 +25,9 @@ package VM::Instructions {
             INC_INT
             DEC_INT
 
+            LOAD_LOCAL
+            STORE_LOCAL
+
             LOAD_ARG
             CALL
             RETURN
@@ -97,6 +100,24 @@ package VM::Instructions {
                 int => $int->value - 1
             )
         );
+    };
+
+    # --------------------------------------------------------------------------
+    # Local Variables
+    # --------------------------------------------------------------------------
+
+    set_microcode_for LOAD_LOCAL, sub ($opcode, $ctx) {
+        my $index = $opcode->operand1;
+        $ctx->push(
+            $ctx->current_stack_frame->get_local($index)
+                // VM::Instructions::Values::NULL->new
+        );
+    };
+
+    set_microcode_for STORE_LOCAL, sub ($opcode, $ctx) {
+        my $index = $opcode->operand1;
+        my $value = $ctx->pop;
+        $ctx->current_stack_frame->set_local($index, $value);
     };
 
     # --------------------------------------------------------------------------
