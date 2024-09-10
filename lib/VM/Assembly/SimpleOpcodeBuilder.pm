@@ -15,18 +15,37 @@ package VM::Assembly::SimpleOpcodeBuilder {
 
         export_lexically(
             # values ...
-            '&i'    => \&i,
-            '&addr' => \&addr,
-            '&void' => \&void,
+            '&t'     => \&t,
+            '&f'     => \&f,
+            '&null'  => \&null,
+            '&void'  => \&void,
+            '&i8'    => \&i8,
+            '&i16'   => \&i16,
+            '&i32'   => \&i32,
+            '&f32'   => \&f32,
+            '&char'  => \&char,
+            '&str'   => \&str,
+            '&addr'  => \&addr,
             # ops ...
-            '&op' => \&op,
+            '&op'    => \&op,
             %instructions,
         );
     }
 
-    sub i    ($i) { VM::Instructions::Values::INT->new( int => $i ) }
-    sub addr ($a) { VM::Instructions::Values::ADDRESS->new( address => $a ) }
-    sub void ()   { VM::Instructions::Values::VOID->new }
+    sub t     ()   { VM::Instructions::Values::BOOL->new( bool => true ) }
+    sub f     ()   { VM::Instructions::Values::BOOL->new( bool => false ) }
+
+    sub null  ()   { VM::Instructions::Values::NULL->new }
+    sub void  ()   { VM::Instructions::Values::VOID->new }
+
+    sub i8    ($i) { VM::Instructions::Values::INT->new( int => $i, size => 8  ) }
+    sub i16   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 16 ) }
+    sub i32   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 32 ) }
+
+    sub f32   ($f) { VM::Instructions::Values::FLOAT->new( float => $f ) }
+    sub char  ($c) { VM::Instructions::Values::CHAR->new( char => $c ) }
+    sub str   ($s) { VM::Instructions::Values::STRING->new( string => $s ) }
+    sub addr  ($a) { VM::Instructions::Values::ADDRESS->new( address => $a ) }
 
     sub op ($c, $o1=undef, $o2=undef) {
         VM::Instructions::Opcode->new(

@@ -28,7 +28,7 @@ my $code = [
     op(RETURN),
 
 # main = 10
-    op(PUSH, i(10)),
+    op(PUSH, i32(10)),
     op(CALL, addr(0), 1),
     op(PUSH, void),
     op(RETURN),

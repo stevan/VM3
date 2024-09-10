@@ -15,10 +15,10 @@ use VM::Assembly::SimpleOpcodeBuilder;
 use VM::Debugger::CPUContext;
 
 my $code = [
-    op(PUSH, i(10)),
-    op(PUSH, i(20)),
+    op(PUSH, i32(10)),
+    op(PUSH, i32(20)),
     op(ADD_INT),
-    op(PUSH, i(30)),
+    op(PUSH, i32(30)),
     op(ADD_INT),
 ];
 

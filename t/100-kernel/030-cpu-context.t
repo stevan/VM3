@@ -13,7 +13,7 @@ subtest '... manipuating pointers and counters' => sub {
 
     is($ctx->pc,  0, '... pc is the expected value');
     is($ctx->sp, -1, '... sp is the expected value');
-    is($ctx->fp,  0, '... fp is the expected value');
+    is($ctx->fp, -1, '... fp is the expected value');
 
     is(scalar $ctx->stack, 0, '... the stack is empty');
 
@@ -36,7 +36,7 @@ subtest '... manipuating the stack' => sub {
 
     is($ctx->pc,  0, '... pc is the expected value');
     is($ctx->sp, -1, '... sp is the expected value');
-    is($ctx->fp,  0, '... fp is the expected value');
+    is($ctx->fp, -1, '... fp is the expected value');
 
     is(scalar $ctx->stack, 0, '... the stack is empty');
 
