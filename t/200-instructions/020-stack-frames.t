@@ -8,11 +8,12 @@ use importer 'Data::Dumper' => qw[ Dumper ];
 use Test::More;
 use Test::Differences;
 
+use VM::Kernel::Process;
 use VM::Kernel::CPU;
 use VM::Instructions;
 
 use VM::Assembly::SimpleOpcodeBuilder;
-use VM::Debugger::CPUContext;
+use VM::Debugger::ProcessContext;
 
 
 my $code = [
@@ -31,23 +32,20 @@ my $code = [
 # main = 8
     op(PUSH, i32(10)),
     op(CALL, addr(0), 1),
-    op(PUSH, void),
-    op(RETURN),
-
-# ... = 12
-    op(CALL, addr(8), 0),
 ];
 
-my $dbg = VM::Debugger::CPUContext->new;
+my $dbg = VM::Debugger::ProcessContext->new;
 
 my $cpu = VM::Kernel::CPU->new( microcode => \@VM::Instructions::MICROCODE );
-my $ctx = VM::Kernel::CPU::Context->new;
+my $prc = VM::Kernel::Process->new( pid => 1, entry => 8 );
 
-$ctx->pc = 12;
-
-while ($cpu->execute($code, $ctx)) {
-    $dbg->dump($cpu, $ctx);
+while ($cpu->execute($code, $prc)) {
+    $dbg->dump($cpu, $prc);
 }
+
+my $result = $prc->peek;
+isa_ok($result, 'VM::Instructions::Values::INT');
+is($result->value, 20, '... got the expected end value');
 
 
 done_testing;

@@ -21,6 +21,8 @@ package VM::Instructions {
             SWAP
             DUP
 
+            PUT
+
             ADD_INT
             INC_INT
             DEC_INT

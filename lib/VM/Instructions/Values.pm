@@ -51,6 +51,7 @@ package VM::Instructions::Values {
             $int = $int % (2 ** $size);
         }
         method max_value { 2 ** $size }
+        method to_string { sprintf 'i%d(%s)' => $self->size, $self->value }
         method copy { __CLASS__->new( int => $int ) }
     }
 

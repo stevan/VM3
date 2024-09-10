@@ -2,7 +2,7 @@
 use v5.40;
 use experimental qw[ class ];
 
-class VM::Debugger::CPUContext {
+class VM::Debugger::ProcessContext {
 
     method dump ($cpu, $ctx) {
         state $width = 80;

@@ -170,8 +170,6 @@ class VM::Debugger::MemoryView {
     }
 }
 
-
-
 my $mem = VM::Memory->new;
 my $dbg = VM::Debugger::MemoryView->new( memory => $mem );
 $dbg->draw;
@@ -207,6 +205,8 @@ $dbg->draw;
 
 $page->reclaim;
 $dbg->draw;
+
+pass('... this is just a test');
 
 done_testing;
 

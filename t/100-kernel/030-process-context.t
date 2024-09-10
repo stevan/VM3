@@ -6,10 +6,10 @@ use experimental qw[ class ];
 use Test::More;
 use Test::Differences;
 
-use VM::Kernel::CPU::Context;
+use VM::Kernel::Process;
 
 subtest '... manipuating pointers and counters' => sub {
-    my $ctx = VM::Kernel::CPU::Context->new;
+    my $ctx = VM::Kernel::Process->new( pid => 1 );
 
     is($ctx->pc,  0, '... pc is the expected value');
     is($ctx->sp, -1, '... sp is the expected value');
@@ -32,7 +32,7 @@ subtest '... manipuating pointers and counters' => sub {
 };
 
 subtest '... manipuating the stack' => sub {
-    my $ctx = VM::Kernel::CPU::Context->new;
+    my $ctx = VM::Kernel::Process->new( pid => 1 );
 
     is($ctx->pc,  0, '... pc is the expected value');
     is($ctx->sp, -1, '... sp is the expected value');
