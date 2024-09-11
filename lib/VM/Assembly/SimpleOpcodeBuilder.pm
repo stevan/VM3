@@ -19,10 +19,17 @@ package VM::Assembly::SimpleOpcodeBuilder {
             '&f'     => \&f,
             '&null'  => \&null,
             '&void'  => \&void,
+
             '&i8'    => \&i8,
             '&i16'   => \&i16,
             '&i32'   => \&i32,
+
+            '&u8'    => \&u8,
+            '&u16'   => \&u16,
+            '&u32'   => \&u32,
+
             '&f32'   => \&f32,
+
             '&char'  => \&char,
             '&str'   => \&str,
             '&addr'  => \&addr,
@@ -38,9 +45,13 @@ package VM::Assembly::SimpleOpcodeBuilder {
     sub null  ()   { VM::Instructions::Values::NULL->new }
     sub void  ()   { VM::Instructions::Values::VOID->new }
 
-    sub i8    ($i) { VM::Instructions::Values::INT->new( int => $i, size => 8  ) }
-    sub i16   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 16 ) }
-    sub i32   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 32 ) }
+    sub i8    ($i) { VM::Instructions::Values::INT->new( int => $i, size => 8,  signed => true ) }
+    sub i16   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 16, signed => true ) }
+    sub i32   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 32, signed => true ) }
+
+    sub u8    ($i) { VM::Instructions::Values::INT->new( int => $i, size => 8  ) }
+    sub u16   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 16 ) }
+    sub u32   ($i) { VM::Instructions::Values::INT->new( int => $i, size => 32 ) }
 
     sub f32   ($f) { VM::Instructions::Values::FLOAT->new( float => $f ) }
     sub char  ($c) { VM::Instructions::Values::CHAR->new( char => $c ) }

@@ -63,7 +63,7 @@ subtest '... check all values' => sub {
     );
 };
 
-subtest '... check int max_values' => sub {
+subtest '... check unsigned int max_values' => sub {
     my @input = (
         8  => 256,
         16 => 65_536,
@@ -76,35 +76,141 @@ subtest '... check int max_values' => sub {
     }
 };
 
-subtest '... check int sizes' => sub {
+subtest '... check signed int max_values' => sub {
+    my @input = (
+        8  => 128,
+        16 => 32768,
+        32 => 2_147_483_648
+    );
+
+    foreach my ($size, $expected_max) (@input) {
+        my $i = VM::Instructions::Values::INT->new( int => 1, size => $size, signed => true );
+        is($i->max_value, $expected_max, "... got the expected($expected_max) max value (".$i->max_value.")");
+    }
+};
+
+subtest '... check unsigned int min_values' => sub {
+    my @input = (
+        8  => 0,
+        16 => 0,
+        32 => 0,
+    );
+
+    foreach my ($size, $expected_min) (@input) {
+        my $i = VM::Instructions::Values::INT->new( int => 1, size => $size );
+        is($i->min_value, $expected_min, "... got the expected($expected_min) min value (".$i->min_value.")");
+    }
+};
+
+subtest '... check signed int min_values' => sub {
+    my @input = (
+        8  => -127,
+        16 => -32767,
+        32 => -2_147_483_647
+    );
+
+    foreach my ($size, $expected_min) (@input) {
+        my $i = VM::Instructions::Values::INT->new( int => 1, size => $size, signed => true );
+        is($i->min_value, $expected_min, "... got the expected($expected_min) min value (".$i->min_value.")");
+    }
+};
+
+subtest '... check unsigned int sizes' => sub {
     my @input = (
         # size, set, expected
     # 8
          8,   0,    0,
          8,  10,   10,
          8, 255,  255,
-         8, 256,    0,
-         8, 276,   20,
+         8, 256,  256,
+         8, 276,  256,
     # 16
-        16,     0,    0,
-        16,    10,   10,
-        16,   255,  255,
-        16,   256,  256,
-        16, 65536,    0,
-        16, 65566,   30,
+        16,     0,     0,
+        16,    10,    10,
+        16,   255,   255,
+        16,   256,   256,
+        16, 65536, 65536,
+        16, 65566, 65536,
     # 32
-        32,          0,     0,
-        32,         10,    10,
-        32,        255,   255,
-        32,        256,   256,
-        32,      65536, 65536,
-        32,      65566, 65566,
-        32, 4294967296,     0,
-        32, 4294967300,     4,
+        32,          0,          0,
+        32,         10,         10,
+        32,        255,        255,
+        32,        256,        256,
+        32,      65536,      65536,
+        32,      65566,      65566,
+        32, 4294967296, 4294967296,
+        32, 4294967300, 4294967296,
     );
 
     foreach my ($size, $set, $expected) (@input) {
         my $i = VM::Instructions::Values::INT->new( int => $set, size => $size );
+        is($i->value, $expected, "... int($set) gave the expected($expected) value (".$i->value.") for int${size}");
+    }
+};
+
+subtest '... check signed int sizes' => sub {
+    my @input = (
+        # size, set, expected
+    # 8
+         8,    0,    0,
+         8,   10,   10,
+         8,  127,  127,
+         8,  128,  128,
+         8,  129,  128,
+         8,  255,  128,
+         8,  256,  128,
+         8,  276,  128,
+         8,  -10,  -10,
+         8, -127, -127,
+         8, -128, -127,
+         8, -129, -127,
+         8, -255, -127,
+         8, -256, -127,
+         8, -276, -127,
+    # 16
+        16,      0,      0,
+        16,     10,     10,
+        16,    255,    255,
+        16,    256,    256,
+        16,  32767,  32767,
+        16,  32768,  32768,
+        16,  32769,  32768,
+        16,  65536,  32768,
+        16,  65566,  32768,
+        16,    -10,    -10,
+        16,   -255,   -255,
+        16,   -256,   -256,
+        16, -32767, -32767,
+        16, -32768, -32767,
+        16, -32769, -32767,
+        16, -65536, -32767,
+        16, -65566, -32767,
+    # 32
+        32,           0,           0,
+        32,          10,          10,
+        32,         255,         255,
+        32,         256,         256,
+        32,       65536,       65536,
+        32,       65566,       65566,
+        32,  2147483647,  2147483647,
+        32,  2147483648,  2147483648,
+        32,  2147483649,  2147483648,
+        32,  4294967296,  2147483648,
+        32,  4294967300,  2147483648,
+        32,         -10,         -10,
+        32,        -255,        -255,
+        32,        -256,        -256,
+        32,      -65536,      -65536,
+        32,      -65566,      -65566,
+        32, -2147483647, -2147483647,
+        32, -2147483648, -2147483647,
+        32, -2147483649, -2147483647,
+        32, -4294967296, -2147483647,
+        32, -4294967300, -2147483647,
+    );
+
+    foreach my ($size, $set, $expected) (@input) {
+        my $i = VM::Instructions::Values::INT->new( int => $set, size => $size, signed => true );
         is($i->value, $expected, "... int($set) gave the expected($expected) value (".$i->value.") for int${size}");
     }
 };

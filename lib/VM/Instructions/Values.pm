@@ -2,6 +2,8 @@
 use v5.40;
 use experimental qw[ class ];
 
+use importer 'List::Util' => qw[ max min ];
+
 package VM::Instructions::Values {
 
     # values provide a bridge between
@@ -41,17 +43,27 @@ package VM::Instructions::Values {
         method copy { __CLASS__->new( char => $char ) }
     }
 
-    # basic integer, with support for 8, 16 and 32 bits with overflow
+    # basic integer, with support for 8, 16 and 32 bits and signed-ness
     class VM::Instructions::Values::INT :isa(VM::Instructions::Values::Value) {
-        field $int  :param :reader(value);
-        field $size :param :reader(size) = 32;
+        field $int    :param :reader(value);
+        field $size   :param :reader(size) = 32;
+        field $signed :param :reader       = false;
+
+        field $min :reader(min_value);
+        field $max :reader(max_value);
+
         ADJUST {
-            ($size == 8 || $size == 16 || $size == 32)
-                || die "INT size must be either 8, 16 or 32, size($size) is not supported";
-            $int = $int % (2 ** $size);
+            if ($signed) {
+                $max = (2 ** $size) / 2;
+                $min = -($max - 1);
+            } else {
+                $max = 2 ** $size;
+                $min = 0;
+            }
+            $int = max($min, min($int, $max));
         }
-        method max_value { 2 ** $size }
-        method to_string { sprintf 'i%d(%s)' => $self->size, $self->value }
+
+        method to_string { sprintf '%s%d(%s)' => ($signed ? 'i':'u'), $size, $self->value }
         method copy { __CLASS__->new( int => $int ) }
     }
 

@@ -2,6 +2,30 @@
 # TODO
 <!---------------------------------------------------------------------------->
 
+- make a compilation unit structure
+    - look at Java class file structure
+    - should be like:
+        - module namespace
+        - public labels
+        - signals used
+        - tags exported
+        - const data
+            - const strings, arrays, etc.
+        - typedefs
+        - functions
+            - function name
+            - sub-labels
+            - stack frame requirements
+            - parameter requirements
+            - local variable requirements
+            - code
+        - behavior block
+            - sub-labels
+            - code
+
+
+
+
 - make tests of the examples/tests/asm files
     - so that we can also run them after the parser tests
 
