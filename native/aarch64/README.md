@@ -11,7 +11,8 @@ it answers: does the convention hold up below the VM?
 On Apple Silicon (or any AArch64 Linux):
 
 ```
-make test        # the five scenarios below, diffed against t/*.expected
+make test        # rt.h vs. the system headers (t/headers.c), then the five
+                 # scenarios below, diffed against t/*.expected
 make bench       # REQUEST/AWAIT round-trip time and per-process memory
 ./spike bench 1000000 10000      # n round trips, k idle processes
 RT_QUOTA=100 RT_STACK_KB=16 ./spike multiplier

@@ -15,12 +15,12 @@
 #include <sys/resource.h>
 #include <time.h>
 
-DECLARE_MODULE(main);
-DECLARE_MODULE(wrongtag);
-DECLARE_MODULE(preempt);
-DECLARE_MODULE(deadlock);
-DECLARE_MODULE(bench);
-DECLARE_MODULE(idle);
+RT_DECLARE_MODULE(main);
+RT_DECLARE_MODULE(wrongtag);
+RT_DECLARE_MODULE(preempt);
+RT_DECLARE_MODULE(deadlock);
+RT_DECLARE_MODULE(bench);
+RT_DECLARE_MODULE(idle);
 
 // both can be overridden from the environment: RT_QUOTA, RT_STACK_KB
 #define QUOTA       2000

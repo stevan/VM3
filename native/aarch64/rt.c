@@ -25,51 +25,51 @@ typedef struct ctx {
 
 typedef struct env env_t;
 struct env {
-    env_t       *next;        // mailbox / bus / dead-letter link
-    env_t       *frame_next;  // MESSAGE frame stack link
-    uint64_t     to, from;
-    const tag_t *tag;
-    uint64_t     reply;       // reply address (packed), 0 = none
-    uint64_t     ref;         // set on replies
-    uint64_t     argc;
-    uint64_t     args[MAX_ARGS];
+    env_t          *next;              // mailbox / bus / dead-letter link
+    env_t          *frame_next;        // MESSAGE frame stack link
+    uint64_t        to, from;
+    const rt_tag_t *tag;
+    uint64_t        reply;             // reply address (packed), 0 = none
+    uint64_t        ref;               // set on replies
+    uint64_t        argc;
+    uint64_t        args[RT_MAX_ARGS];
 };
 
 typedef struct proc proc_t;
 struct proc {
-    int64_t         reductions;          // P_REDUCTIONS
-    uint64_t        pid;                 // P_PID
-    uint64_t        args[MAX_ARGS];      // P_ARGS: spawn args, for the trampoline
-    ctx_t           ctx;                 // P_CTX
-    const module_t *module;
-    uint64_t        parent;
-    int             state;
-    uint64_t        born;                // tick it was spawned in
-    void           *stack;               // mmap'd, guard page included
-    size_t          stack_size;
-    env_t          *mbox, **mbox_tail;
-    env_t         **cursor;              // link to the message under the cursor
-    env_t          *frames;              // MESSAGE frames, innermost first
-    uint32_t        next_ref;
-    uint64_t        awaiting;            // pid this process is AWAITing, 0 = none
-    uint64_t        commit_sp;           // sp at the first YIELD
-    uint64_t        ret[MAX_ARGS];       // AWAIT's reply values
-    char           *fault;
-    proc_t         *next_live;
+    int64_t            reductions;          // RT_PROC_REDUCTIONS
+    uint64_t           pid;                 // RT_PROC_PID
+    uint64_t           args[RT_MAX_ARGS];   // RT_PROC_ARGS: spawn args, for the trampoline
+    ctx_t              ctx;                 // RT_PROC_CTX
+    const rt_module_t *module;
+    uint64_t           parent;
+    int                state;
+    uint64_t           born;                // tick it was spawned in
+    void              *stack;               // mmap'd, guard page included
+    size_t             stack_size;
+    env_t             *mbox, **mbox_tail;
+    env_t            **cursor;              // link to the message under the cursor
+    env_t             *frames;              // MESSAGE frames, innermost first
+    uint32_t           next_ref;
+    uint64_t           awaiting;            // pid this process is AWAITing, 0 = none
+    uint64_t           commit_sp;           // sp at the first YIELD
+    uint64_t           ret[RT_MAX_ARGS];    // AWAIT's reply values
+    char              *fault;
+    proc_t            *next_live;
 };
 
-_Static_assert(offsetof(proc_t, reductions) == P_REDUCTIONS, "P_REDUCTIONS");
-_Static_assert(offsetof(proc_t, pid)        == P_PID,        "P_PID");
-_Static_assert(offsetof(proc_t, args)       == P_ARGS,       "P_ARGS");
-_Static_assert(offsetof(proc_t, ctx)        == P_CTX,        "P_CTX");
-_Static_assert(offsetof(env_t,  args)       == ENV_ARGS,     "ENV_ARGS");
-_Static_assert(offsetof(ctx_t,  fp)         == CTX_FP,       "CTX_FP");
-_Static_assert(offsetof(ctx_t,  lr)         == CTX_LR,       "CTX_LR");
-_Static_assert(offsetof(ctx_t,  sp)         == CTX_SP,       "CTX_SP");
-_Static_assert(offsetof(ctx_t,  d8_d15)     == CTX_D8,       "CTX_D8");
-_Static_assert(sizeof(ctx_t)                == CTX_SIZE,     "CTX_SIZE");
-_Static_assert(sizeof(tag_t)                == 32,           "TAG macro emits 4 quads");
-_Static_assert(sizeof(module_t)             == 40,           "MODULE macro emits 5 quads");
+_Static_assert(offsetof(proc_t, reductions) == RT_PROC_REDUCTIONS, "RT_PROC_REDUCTIONS");
+_Static_assert(offsetof(proc_t, pid)        == RT_PROC_PID,        "RT_PROC_PID");
+_Static_assert(offsetof(proc_t, args)       == RT_PROC_ARGS,       "RT_PROC_ARGS");
+_Static_assert(offsetof(proc_t, ctx)        == RT_PROC_CTX,        "RT_PROC_CTX");
+_Static_assert(offsetof(env_t,  args)       == RT_ENV_ARGS,        "RT_ENV_ARGS");
+_Static_assert(offsetof(ctx_t,  fp)         == RT_CTX_FP,          "RT_CTX_FP");
+_Static_assert(offsetof(ctx_t,  lr)         == RT_CTX_LR,          "RT_CTX_LR");
+_Static_assert(offsetof(ctx_t,  sp)         == RT_CTX_SP,          "RT_CTX_SP");
+_Static_assert(offsetof(ctx_t,  d8_d15)     == RT_CTX_D8,          "RT_CTX_D8");
+_Static_assert(sizeof(ctx_t)                == RT_CTX_SIZE,        "RT_CTX_SIZE");
+_Static_assert(sizeof(rt_tag_t)             == 32,                 "TAG macro emits 4 quads");
+_Static_assert(sizeof(rt_module_t)          == 40,                 "MODULE macro emits 5 quads");
 
 // A pending (caller side) and a reply address (callee side) are the same
 // shape, packed into one register: ref:32 | pid:24 | tag index:8
@@ -81,41 +81,42 @@ _Static_assert(sizeof(module_t)             == 40,           "MODULE macro emits
 
 // --- implemented in rt_asm.S --------------------------------------------------
 
-void rt_switch(ctx_t *from, ctx_t *to) ASM(rt_switch);
-void rt_trampoline(void)               ASM(rt_trampoline);
+void rt_switch(ctx_t *from, ctx_t *to) RT_ASM(rt_switch);
+void rt_trampoline(void)               RT_ASM(rt_trampoline);
 
 // --- called from actor code (directly, or through the stubs in rt_asm.S) ------
 
-uint64_t  rt_spawn_c(const module_t *, uint64_t, const uint64_t *)                    ASM(rt_spawn_c);
-void      rt_send_c(uint64_t, const tag_t *, uint64_t, const uint64_t *)              ASM(rt_send_c);
-uint64_t  rt_request_c(uint64_t, const tag_t *, const tag_t *, uint64_t, const uint64_t *) ASM(rt_request_c);
-uint64_t *rt_await_c(uint64_t, const tag_t *)                                         ASM(rt_await_c);
-void      rt_reply_c(uint64_t, const uint64_t *)                                      ASM(rt_reply_c);
-env_t    *rt_msg_accept_c(void)                                                       ASM(rt_msg_accept_c);
-uint64_t  rt_recv(void)                                                               ASM(rt_recv);
-void      rt_msg_skip(void)                                                           ASM(rt_msg_skip);
-void      rt_msg_drop(void)                                                           ASM(rt_msg_drop);
-void      rt_msg_done(void)                                                           ASM(rt_msg_done);
-uint64_t  rt_msg_sender(void)                                                         ASM(rt_msg_sender);
-void      rt_yield(uint64_t)                                                          ASM(rt_yield);
-_Noreturn void rt_stop(void)                                                          ASM(rt_stop);
-void      rt_preempt(void)                                                            ASM(rt_preempt);
-void      rt_say(int64_t)                                                             ASM(rt_say);
-void      rt_say_str(const char *)                                                    ASM(rt_say_str);
+uint64_t  rt_spawn_c(const rt_module_t *, uint64_t, const uint64_t *)          RT_ASM(rt_spawn_c);
+void      rt_send_c(uint64_t, const rt_tag_t *, uint64_t, const uint64_t *)    RT_ASM(rt_send_c);
+uint64_t  rt_request_c(uint64_t, const rt_tag_t *, const rt_tag_t *,
+                       uint64_t, const uint64_t *)                              RT_ASM(rt_request_c);
+uint64_t *rt_await_c(uint64_t, const rt_tag_t *)                                RT_ASM(rt_await_c);
+void      rt_reply_c(uint64_t, const uint64_t *)                                RT_ASM(rt_reply_c);
+env_t    *rt_msg_accept_c(void)                                                 RT_ASM(rt_msg_accept_c);
+uint64_t  rt_recv(void)                                                         RT_ASM(rt_recv);
+void      rt_msg_skip(void)                                                     RT_ASM(rt_msg_skip);
+void      rt_msg_drop(void)                                                     RT_ASM(rt_msg_drop);
+void      rt_msg_done(void)                                                     RT_ASM(rt_msg_done);
+uint64_t  rt_msg_sender(void)                                                   RT_ASM(rt_msg_sender);
+void      rt_yield(uint64_t)                                                    RT_ASM(rt_yield);
+_Noreturn void rt_stop(void)                                                    RT_ASM(rt_stop);
+void      rt_preempt(void)                                                      RT_ASM(rt_preempt);
+void      rt_say(int64_t)                                                       RT_ASM(rt_say);
+void      rt_say_str(const char *)                                              RT_ASM(rt_say_str);
 
 // --- state ---------------------------------------------------------------------
 
-static ctx_t            sched;                   // the scheduler's own context
-static proc_t          *current;                 // same as x28 in actor code
-static proc_t         **procs;                   // by pid; NULL once reaped
-static const module_t **mods;                    // by pid; kept (a pid knows its module)
-static uint64_t         npids = 1, cap;
-static proc_t          *live, **live_tail = &live;
-static env_t           *bus,  **bus_tail  = &bus;
-static env_t           *dead, **dead_tail = &dead;
-static int64_t          quota;
-static size_t           stack_bytes, page;
-static rt_stats_t       stats;
+static ctx_t               sched;          // the scheduler's own context
+static proc_t             *current;        // same as x28 in actor code
+static proc_t            **procs;          // by pid; NULL once reaped
+static const rt_module_t **mods;           // by pid; kept (a pid knows its module)
+static uint64_t            npids = 1, cap;
+static proc_t             *live, **live_tail = &live;
+static env_t              *bus,  **bus_tail  = &bus;
+static env_t              *dead, **dead_tail = &dead;
+static int64_t             quota;
+static size_t              stack_bytes, page;
+static rt_stats_t          stats;
 
 static void die(const char *msg) {
     fprintf(stderr, "rt: %s\n", msg);
@@ -126,12 +127,12 @@ static const char *who(uint64_t pid) {
     static char bufs[4][64];
     static int  i;
     char *b = bufs[i++ & 3];
-    const module_t *m = pid && pid < npids ? mods[pid] : NULL;
+    const rt_module_t *m = pid && pid < npids ? mods[pid] : NULL;
     snprintf(b, 64, "<%llu:%s>", (unsigned long long)pid, m ? m->name : "rt");
     return b;
 }
 
-static void tagname(char *b, size_t n, const tag_t *t) {
+static void tagname(char *b, size_t n, const rt_tag_t *t) {
     snprintf(b, n, "^%s:%s", t->module->name, t->name);
 }
 
@@ -168,7 +169,7 @@ static void bury(env_t *e) {
 
 // --- processes -------------------------------------------------------------------
 
-static proc_t *spawn(const module_t *m, uint64_t parent, const uint64_t *args) {
+static proc_t *spawn(const rt_module_t *m, uint64_t parent, const uint64_t *args) {
     if (npids >= MAX_PIDS) die("out of pids");
     if (npids >= cap) {
         cap   = cap ? cap * 2 : 1024;
@@ -209,18 +210,18 @@ static proc_t *spawn(const module_t *m, uint64_t parent, const uint64_t *args) {
     return p;
 }
 
-uint64_t rt_spawn_c(const module_t *m, uint64_t argc, const uint64_t *args) {
-    if (m->arity > MAX_ARGS)
+uint64_t rt_spawn_c(const rt_module_t *m, uint64_t argc, const uint64_t *args) {
+    if (m->arity > RT_MAX_ARGS)
         fault(current, "SPAWN %s: it declares %llu args, the most is %d", m->name,
-              (unsigned long long)m->arity, MAX_ARGS);
+              (unsigned long long)m->arity, RT_MAX_ARGS);
     if (argc != m->arity)
         fault(current, "SPAWN %s with %llu args: it takes %llu", m->name,
               (unsigned long long)argc, (unsigned long long)m->arity);
     return spawn(m, current->pid, args)->pid;
 }
 
-uint64_t rt_spawn_root(const module_t *m, uint64_t argc, const uint64_t *args) {
-    if (argc != m->arity || argc > MAX_ARGS) die("rt_spawn_root: wrong number of args");
+uint64_t rt_spawn_root(const rt_module_t *m, uint64_t argc, const uint64_t *args) {
+    if (argc != m->arity || argc > RT_MAX_ARGS) die("rt_spawn_root: wrong number of args");
     return spawn(m, 0, args)->pid;
 }
 
@@ -248,7 +249,7 @@ void rt_preempt(void) {
 
 // --- sending -----------------------------------------------------------------------
 
-static env_t *envelope(proc_t *p, const char *op, uint64_t to, const tag_t *tag,
+static env_t *envelope(proc_t *p, const char *op, uint64_t to, const rt_tag_t *tag,
                        uint64_t argc, const uint64_t *args) {
     char t[96];
     tagname(t, sizeof t, tag);
@@ -259,8 +260,8 @@ static env_t *envelope(proc_t *p, const char *op, uint64_t to, const tag_t *tag,
     if (argc != tag->arity)
         fault(p, "%s %s with %llu args: its arity is %llu", op, t,
               (unsigned long long)argc, (unsigned long long)tag->arity);
-    if (argc > MAX_ARGS)
-        fault(p, "%s %s: %llu args, the most is %d", op, t, (unsigned long long)argc, MAX_ARGS);
+    if (argc > RT_MAX_ARGS)
+        fault(p, "%s %s: %llu args, the most is %d", op, t, (unsigned long long)argc, RT_MAX_ARGS);
 
     env_t *e = calloc(1, sizeof *e);
     if (!e) die("out of memory");
@@ -279,11 +280,11 @@ static void post(env_t *e) {
     stats.messages++;
 }
 
-void rt_send_c(uint64_t to, const tag_t *tag, uint64_t argc, const uint64_t *args) {
+void rt_send_c(uint64_t to, const rt_tag_t *tag, uint64_t argc, const uint64_t *args) {
     post(envelope(current, "SEND", to, tag, argc, args));
 }
 
-uint64_t rt_request_c(uint64_t to, const tag_t *tag, const tag_t *reply,
+uint64_t rt_request_c(uint64_t to, const rt_tag_t *tag, const rt_tag_t *reply,
                       uint64_t argc, const uint64_t *args) {
     proc_t *p = current;
     if (reply->module != p->module)
@@ -352,7 +353,7 @@ uint64_t rt_msg_sender(void) {
 
 // AWAIT: scan the whole mailbox for the reply first, and only then check
 // whether the callee is gone (see "replies beat exits" in the doc).
-uint64_t *rt_await_c(uint64_t pending, const tag_t *reply) {
+uint64_t *rt_await_c(uint64_t pending, const rt_tag_t *reply) {
     proc_t  *p      = current;
     uint64_t callee = H_PID(pending);
     uint64_t ref    = H_REF(pending);

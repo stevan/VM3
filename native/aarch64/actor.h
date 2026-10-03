@@ -110,9 +110,9 @@ tagname_\module\()_\name:
 //                          activation's quota and preempts when it runs out.
 //                          Clobbers caller-saved registers, like any op.
 .macro REDUCE
-    ldr  x9, [x28, #P_REDUCTIONS]
+    ldr  x9, [x28, #RT_PROC_REDUCTIONS]
     subs x9, x9, #1
-    str  x9, [x28, #P_REDUCTIONS]
+    str  x9, [x28, #RT_PROC_REDUCTIONS]
     b.gt 1f
     bl   rt_preempt
 1:

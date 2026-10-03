@@ -19,31 +19,31 @@
 // ---------------------------------------------------------------------------
 
 FUNC rt_switch
-    stp  x19, x20, [x0, #CTX_X19 +  0]
-    stp  x21, x22, [x0, #CTX_X19 + 16]
-    stp  x23, x24, [x0, #CTX_X19 + 32]
-    stp  x25, x26, [x0, #CTX_X19 + 48]
-    stp  x27, x28, [x0, #CTX_X19 + 64]
-    stp  x29, x30, [x0, #CTX_FP]
+    stp  x19, x20, [x0, #RT_CTX_X19 +  0]
+    stp  x21, x22, [x0, #RT_CTX_X19 + 16]
+    stp  x23, x24, [x0, #RT_CTX_X19 + 32]
+    stp  x25, x26, [x0, #RT_CTX_X19 + 48]
+    stp  x27, x28, [x0, #RT_CTX_X19 + 64]
+    stp  x29, x30, [x0, #RT_CTX_FP]
     mov  x9, sp
-    str  x9,       [x0, #CTX_SP]
-    stp  d8,  d9,  [x0, #CTX_D8 +  0]
-    stp  d10, d11, [x0, #CTX_D8 + 16]
-    stp  d12, d13, [x0, #CTX_D8 + 32]
-    stp  d14, d15, [x0, #CTX_D8 + 48]
+    str  x9,       [x0, #RT_CTX_SP]
+    stp  d8,  d9,  [x0, #RT_CTX_D8 +  0]
+    stp  d10, d11, [x0, #RT_CTX_D8 + 16]
+    stp  d12, d13, [x0, #RT_CTX_D8 + 32]
+    stp  d14, d15, [x0, #RT_CTX_D8 + 48]
 
-    ldp  x19, x20, [x1, #CTX_X19 +  0]
-    ldp  x21, x22, [x1, #CTX_X19 + 16]
-    ldp  x23, x24, [x1, #CTX_X19 + 32]
-    ldp  x25, x26, [x1, #CTX_X19 + 48]
-    ldp  x27, x28, [x1, #CTX_X19 + 64]
-    ldp  x29, x30, [x1, #CTX_FP]
-    ldr  x9,       [x1, #CTX_SP]
+    ldp  x19, x20, [x1, #RT_CTX_X19 +  0]
+    ldp  x21, x22, [x1, #RT_CTX_X19 + 16]
+    ldp  x23, x24, [x1, #RT_CTX_X19 + 32]
+    ldp  x25, x26, [x1, #RT_CTX_X19 + 48]
+    ldp  x27, x28, [x1, #RT_CTX_X19 + 64]
+    ldp  x29, x30, [x1, #RT_CTX_FP]
+    ldr  x9,       [x1, #RT_CTX_SP]
     mov  sp, x9
-    ldp  d8,  d9,  [x1, #CTX_D8 +  0]
-    ldp  d10, d11, [x1, #CTX_D8 + 16]
-    ldp  d12, d13, [x1, #CTX_D8 + 32]
-    ldp  d14, d15, [x1, #CTX_D8 + 48]
+    ldp  d8,  d9,  [x1, #RT_CTX_D8 +  0]
+    ldp  d10, d11, [x1, #RT_CTX_D8 + 16]
+    ldp  d12, d13, [x1, #RT_CTX_D8 + 32]
+    ldp  d14, d15, [x1, #RT_CTX_D8 + 48]
     ret
 
 // ---------------------------------------------------------------------------
@@ -52,11 +52,11 @@ FUNC rt_switch
 // ---------------------------------------------------------------------------
 
 FUNC rt_trampoline
-    ldr  x0,     [x28, #P_PID]
-    ldp  x1, x2, [x28, #P_ARGS +  0]
-    ldp  x3, x4, [x28, #P_ARGS + 16]
-    ldp  x5, x6, [x28, #P_ARGS + 32]
-    ldr  x7,     [x28, #P_ARGS + 48]
+    ldr  x0,     [x28, #RT_PROC_PID]
+    ldp  x1, x2, [x28, #RT_PROC_ARGS +  0]
+    ldp  x3, x4, [x28, #RT_PROC_ARGS + 16]
+    ldp  x5, x6, [x28, #RT_PROC_ARGS + 32]
+    ldr  x7,     [x28, #RT_PROC_ARGS + 48]
     blr  x19                            // .init(self, a0..a6)
     bl   rt_stop                        // falling off the end of .init is STOP
 
@@ -139,7 +139,7 @@ FUNC rt_msg_accept
     stp  x29, x30, [sp, #-16]!
     mov  x29, sp
     bl   rt_msg_accept_c                // -> envelope, now the top MESSAGE frame
-    add  x8, x0, #ENV_ARGS
+    add  x8, x0, #RT_ENV_ARGS
     ldp  x1, x2, [x8,  #0]
     ldp  x3, x4, [x8, #16]
     ldp  x5, x6, [x8, #32]

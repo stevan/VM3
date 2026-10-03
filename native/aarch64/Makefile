@@ -21,8 +21,12 @@ HDR := rt.h actor.h
 spike: $(SRC) $(HDR)
 	$(CC) $(CFLAGS) $(SRC) -o $@
 
-test: spike
+test: spike headers
 	RUN="$(RUN)" ./t/run.sh
+
+# rt.h must not collide with the system headers (see t/headers.c)
+headers:
+	$(CC) $(CFLAGS) -Wno-unused-command-line-argument -fsyntax-only t/headers.c
 
 bench: spike
 	$(RUN) ./spike bench
@@ -30,4 +34,4 @@ bench: spike
 clean:
 	rm -f spike
 
-.PHONY: test bench clean
+.PHONY: test headers bench clean
