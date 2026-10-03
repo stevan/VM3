@@ -20,10 +20,8 @@ RT_QUOTA=100 RT_STACK_KB=16 ./spike multiplier
 
 On an x86-64 Linux box the Makefile cross-compiles with clang and runs under
 `qemu-aarch64` (needs `clang`, `lld`, `gcc-aarch64-linux-gnu` for the sysroot,
-and `qemu-user`). That's how this was developed, so the numbers it printed
-there aren't worth anything. The assembly also assembles and links as Mach-O
-(checked with `clang --target=arm64-apple-macos13` and `ld64.lld`), but the
-first real macOS run is yours.
+and `qemu-user`). That's how this was developed; its timings under qemu
+aren't worth anything.
 
 | Scenario      | What it shows |
 |---------------|---------------|
@@ -39,6 +37,26 @@ Two negative controls (not in `make test`, they need code changes or env vars):
   prints **1003**: AVM's original bug, reproduced natively
 - `RT_QUOTA=1000000000 ./spike preempt` turns preemption off in practice,
   and the spinner finishes first
+
+## Results on an M2 Max (macOS)
+
+`make test` passes natively. `make bench`:
+
+```
+round trips:  1000000 in 232.1 ms = 232.1 ns each  (2000002 ticks, 2000002 activations, 2000001 messages)
+idle procs:   10000 spawned and suspended in 19.3 ms = 1928 ns each, +164560 KiB resident = 16851 bytes each
+```
+
+- **232 ns per REQUEST/AWAIT round trip**, in the deterministic tick mode:
+  every round trip is two ticks and two activations, and every message is a
+  `calloc` + `free`. Not profiled yet; the context switch is only 25
+  instructions, so I'd expect most of the time to be elsewhere.
+- **16,851 bytes per idle process** is one 16 KiB stack page (the only one a
+  suspended process touches), plus 416 bytes of `proc_t`, plus 16 bytes of
+  table entries: 16,816. The page is the cost, not the stack: the deepest
+  suspension in any scenario uses about 130 bytes of it (measured under qemu).
+- **1.9 µs per spawn** is mostly `mmap` + `mprotect` and the first-touch page
+  fault. A pool of reused stacks would remove most of it.
 
 ## Layout
 
